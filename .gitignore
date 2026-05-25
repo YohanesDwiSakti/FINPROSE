@@ -1,0 +1,15 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+.vercel
+.gocache/
+.npm-cache/
+.pdfdeps/
+backend/*.exe
+backend/*.exe~
