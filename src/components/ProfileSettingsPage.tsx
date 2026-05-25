@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, Bell, Lock, Mail, MapPin, Phone, Save, User } from 'lucide-react';
-import { getStoredUser } from '../api';
+import { ArrowLeft, Bell, Camera, Loader2, Lock, Mail, MapPin, Phone, Save, User } from 'lucide-react';
+import { getStoredUser, uploadProfilePhoto } from '../api';
 import { ActionModal } from './ActionModal';
 
 const DOMICILE_OPTIONS = [
@@ -35,6 +35,8 @@ export const ProfileSettingsPage = ({ onBack }: { onBack: () => void }) => {
   const [email, setEmail] = useState(user?.email || 'klien@example.com');
   const [phone, setPhone] = useState(user?.phone || '+62 812 0000 0001');
   const [address, setAddress] = useState(user?.address || 'DKI Jakarta - Jakarta Selatan');
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [saved, setSaved] = useState(false);
   const [modal, setModal] = useState<{ title: string; description: string } | null>(null);
 
@@ -46,10 +48,25 @@ export const ProfileSettingsPage = ({ onBack }: { onBack: () => void }) => {
       name,
       email,
       phone,
-      address
+      address,
+      avatarUrl
     }));
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1800);
+  };
+
+  const handlePhotoChange = async (file?: File) => {
+    if (!file) return;
+    setIsUploadingPhoto(true);
+    try {
+      const url = await uploadProfilePhoto(file);
+      setAvatarUrl(url);
+      setModal({ title: 'Foto Profil Tersimpan', description: 'Foto profil Anda berhasil diunggah dan akan tampil di akun FINPROSE.' });
+    } catch (error) {
+      setModal({ title: 'Upload Foto Gagal', description: error instanceof Error ? error.message : 'Foto profil gagal diunggah.' });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   return (
@@ -68,8 +85,21 @@ export const ProfileSettingsPage = ({ onBack }: { onBack: () => void }) => {
 
       <main className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-6 py-12 lg:grid-cols-3">
         <section className="rounded-[40px] border border-brand-gray-100 bg-brand-black p-8 text-white shadow-2xl shadow-black/20">
-          <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-[32px] bg-white text-4xl font-bold text-brand-black">
-            {name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()}
+          <div className="mb-8 space-y-4">
+            <div className="relative h-24 w-24 overflow-hidden rounded-[32px] bg-white text-brand-black">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-4xl font-bold">
+                  {name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <label className="inline-flex cursor-pointer items-center space-x-2 rounded-2xl bg-white px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-brand-black">
+              {isUploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              <span>{isUploadingPhoto ? 'Mengunggah...' : 'Ganti Foto'}</span>
+              <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => handlePhotoChange(event.target.files?.[0])} />
+            </label>
           </div>
           <h2 className="font-display text-3xl font-bold">{name}</h2>
           <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">{user?.role === 'lawyer' ? 'Advokat' : user?.role === 'admin' ? 'Admin' : 'Klien'} FINPROSE</p>

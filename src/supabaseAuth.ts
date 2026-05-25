@@ -8,6 +8,7 @@ type ProfileRow = {
   full_name: string;
   email: string;
   phone: string | null;
+  avatar_url: string | null;
   role: AppRole;
   status: string;
 };
@@ -19,7 +20,8 @@ function storeSession(accessToken: string, profile: ProfileRow) {
     email: profile.email,
     role: profile.role,
     status: profile.status,
-    phone: profile.phone || undefined
+    phone: profile.phone || undefined,
+    avatarUrl: profile.avatar_url || undefined
   };
 
   localStorage.setItem('finprose_token', accessToken);
@@ -143,7 +145,7 @@ export async function signInWithSupabase(email: string, password: string, expect
 
   const { data: profile, error: profileError } = await client
     .from('profiles')
-    .select('id, full_name, email, phone, role, status')
+    .select('id, full_name, email, phone, avatar_url, role, status')
     .eq('id', data.user.id)
     .single<ProfileRow>();
 
@@ -169,7 +171,7 @@ export async function restoreSupabaseSession() {
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, full_name, email, phone, role, status')
+    .select('id, full_name, email, phone, avatar_url, role, status')
     .eq('id', data.session.user.id)
     .single<ProfileRow>();
 

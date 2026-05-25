@@ -11,6 +11,7 @@ export type StoredUser = {
   status: string;
   phone?: string;
   address?: string;
+  avatarUrl?: string;
 };
 
 export type ConsultationStatus = 'pending' | 'paid' | 'ongoing' | 'in_review' | 'completed' | 'cancelled' | 'expired';
@@ -563,6 +564,51 @@ export async function uploadLegalDocument(file: File, consultationId?: string) {
 
   if (error) throw error;
   return data as DocumentRow;
+}
+
+export async function uploadProfilePhoto(file: File) {
+  const supabase = requireSupabase();
+  const user = getStoredUser();
+  if (!user?.id) throw new Error('User belum login.');
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Foto profil harus berupa JPG, PNG, atau WEBP.');
+  }
+  if (file.size > 3 * 1024 * 1024) {
+    throw new Error('Ukuran foto maksimal 3MB.');
+  }
+
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const storagePath = `${user.id}/avatar-${Date.now()}.${extension}`;
+  const { error: uploadError } = await supabase.storage
+    .from('profile-photos')
+    .upload(storagePath, file, { upsert: false, contentType: file.type });
+
+  if (uploadError) throw uploadError;
+
+  const { data: urlData } = supabase.storage
+    .from('profile-photos')
+    .getPublicUrl(storagePath);
+
+  const avatarUrl = urlData.publicUrl;
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+    .eq('id', user.id);
+
+  if (profileError) throw profileError;
+
+  if (user.role === 'lawyer') {
+    await supabase
+      .from('lawyer_directory')
+      .update({ image: avatarUrl, updated_at: new Date().toISOString() })
+      .eq('id', user.id);
+  }
+
+  const updatedUser = { ...user, avatarUrl };
+  localStorage.setItem('finprose_user', JSON.stringify(updatedUser));
+  return avatarUrl;
 }
 
 export async function getOrCreateChatSession(payload: {
