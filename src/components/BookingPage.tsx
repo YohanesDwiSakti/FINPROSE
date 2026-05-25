@@ -58,6 +58,7 @@ export const BookingPage = ({
       onConfirm({
         ...consultation,
         lawyerId: lawyer.id,
+        lawyer,
         lawyerName: lawyer.name,
         type: selectedType,
         day: selectedDay,

@@ -223,6 +223,7 @@ type LawyerDirectoryRow = {
   education: string[];
   certifications: string[];
   availability: { day: string; times: string[] }[];
+  whatsapp_number?: string | null;
 };
 
 function mapLawyer(row: LawyerDirectoryRow): Lawyer {
@@ -240,7 +241,8 @@ function mapLawyer(row: LawyerDirectoryRow): Lawyer {
     languages: row.languages || [],
     education: row.education || [],
     certifications: row.certifications || [],
-    availability: row.availability || []
+    availability: row.availability || [],
+    whatsappNumber: row.whatsapp_number || undefined
   };
 }
 

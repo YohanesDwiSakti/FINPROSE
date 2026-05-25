@@ -56,7 +56,7 @@ export const CaseHistoryPage = ({
   onPayConsultation
 }: { 
   onBack: () => void,
-  onContinueDiscussion?: (lawyerId: string) => void,
+  onContinueDiscussion?: (data: CaseView) => void,
   onPayConsultation?: (data: CaseView) => void
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -310,7 +310,7 @@ export const CaseHistoryPage = ({
                           onPayConsultation?.(selectedCase);
                           return;
                         }
-                        onContinueDiscussion?.(selectedCase.lawyerId || '');
+                        onContinueDiscussion?.(selectedCase);
                     }}
                     className="flex-1 bg-brand-black text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-black/10 hover:translate-y-[-2px] transition-all flex items-center justify-center space-x-2"
                  >

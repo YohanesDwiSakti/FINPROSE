@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { createPayment, getStoredUser, updateConsultationStatus } from '../api';
 import { ActionModal } from './ActionModal';
+import { consultationTypeLabel, openWhatsAppConsultation } from '../whatsapp';
 
 declare global {
   interface Window {
@@ -64,6 +65,28 @@ export const PaymentPage = ({
   const [message, setMessage] = useState('');
   const [modal, setModal] = useState<{ title: string; description: string } | null>(null);
 
+  const openWhatsAppAfterPayment = () => {
+    const user = getStoredUser();
+    const opened = openWhatsAppConsultation({
+      consultationId: bookingData?.consultationId || bookingData?.id,
+      clientName: user?.name,
+      lawyer: bookingData?.lawyer,
+      lawyerName: bookingData?.lawyerName,
+      type: bookingData?.type,
+      day: bookingData?.day,
+      time: bookingData?.time,
+      notes: bookingData?.notes
+    });
+
+    if (!opened) {
+      setModal({
+        title: 'Nomor WhatsApp Belum Diatur',
+        description: 'Pembayaran berhasil. Isi VITE_FINPROSE_WHATSAPP_NUMBER di environment Vercel atau tambahkan nomor WhatsApp advokat agar customer langsung diarahkan ke WhatsApp.'
+      });
+      onSuccess();
+    }
+  };
+
   const methods: PaymentMethod[] = [
     { id: 'bank', name: 'Transfer Bank', icon: Building2, description: 'Virtual Account (BCA, Mandiri, BNI)' },
     { id: 'qris', name: 'QRIS', icon: QrCode, description: 'Scan via GoPay, OVO, Dana, LinkAja' },
@@ -99,7 +122,7 @@ export const PaymentPage = ({
             .catch(() => null)
             .finally(() => {
               setIsProcessing(false);
-              onSuccess();
+              openWhatsAppAfterPayment();
             });
         },
         onPending: () => {
@@ -174,7 +197,7 @@ export const PaymentPage = ({
               <div className="space-y-1">
                 <h4 className="text-sm font-bold">Pembayaran Aman & Terpercaya</h4>
                 <p className="text-[10px] text-brand-gray-400 font-medium leading-relaxed uppercase tracking-wider">
-                  Sistem kami menggunakan enkripsi tingkat bank untuk melindungi transaksi Anda. Dana akan dititipkan secara aman hingga sesi konsultasi dinyatakan selesai.
+                  Nomor WhatsApp konsultasi hanya dibuka setelah pembayaran sukses. Setelah bayar, Anda langsung diarahkan ke WhatsApp dengan pesan otomatis.
                 </p>
               </div>
             </section>
@@ -194,7 +217,7 @@ export const PaymentPage = ({
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-xs font-bold mb-1">Konsultasi Hukum</p>
-                    <p className="text-[10px] text-brand-gray-400 font-medium uppercase tracking-widest">1 Sesi (60 Menit) via Midtrans Snap</p>
+                    <p className="text-[10px] text-brand-gray-400 font-medium uppercase tracking-widest">1 Sesi (60 Menit) via {consultationTypeLabel(bookingData?.type)}</p>
                     </div>
                     <p className="text-sm font-bold font-mono">Rp {bookingData?.price?.toLocaleString('id-ID')}</p>
                   </div>

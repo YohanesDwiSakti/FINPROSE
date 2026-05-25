@@ -27,6 +27,7 @@ import { LawyerProfileSettingsPage } from './components/LawyerProfileSettingsPag
 import { Lawyer, ConsultationType } from './types';
 import { getStoredUser } from './api';
 import { restoreSupabaseSession, signOutSupabase } from './supabaseAuth';
+import { openWhatsAppConsultation } from './whatsapp';
 
 type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'otp' | 'lawyer-dash' | 'client-dash' | 'admin-dash' | 'lawyer-list' | 'lawyer-detail' | 'booking' | 'chat' | 'meeting' | 'case-history' | 'document-vault' | 'payment' | 'review' | 'help' | 'profile-settings' | 'lawyer-profile-settings';
 
@@ -277,16 +278,45 @@ export default function App() {
               setView('payment');
             });
           }}
-          onContinueDiscussion={() => {
-            // Pick a default lawyer if none selected, or use the one from the case
-            if(!selectedLawyer) {
-                // mock selecting first lawyer
-                import('./constants').then(c => {
-                    setSelectedLawyer(c.LAWYERS[0]);
-                    setView('chat');
-                });
-            } else {
-                setView('chat');
+          onContinueDiscussion={(data) => {
+            const user = getStoredUser();
+            const opened = openWhatsAppConsultation({
+              consultationId: data.consultationId,
+              clientName: user?.name,
+              lawyerName: data.lawyerName,
+              type: data.consultationType,
+              day: data.date,
+              time: data.time
+            });
+            if (!opened) {
+              setSelectedLawyer({
+                id: data.lawyerId || 'selected-lawyer',
+                name: data.lawyerName,
+                specialty: data.specialty,
+                rating: 0,
+                reviewCount: 0,
+                experience: 0,
+                price: data.price,
+                image: '/lawyer1.png',
+                description: '',
+                isOnline: false,
+                languages: [],
+                education: [],
+                certifications: [],
+                availability: []
+              });
+              setBookingData({
+                id: data.consultationId,
+                consultationId: data.consultationId,
+                clientId: data.clientId,
+                lawyerId: data.lawyerId,
+                lawyerName: data.lawyerName,
+                type: data.consultationType || ConsultationType.CHAT,
+                price: data.price,
+                day: data.date,
+                time: data.time
+              });
+              setView('chat');
             }
           }}
         />
