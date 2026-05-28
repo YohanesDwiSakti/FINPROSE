@@ -25,7 +25,7 @@ import { HelpPage } from './components/HelpPage';
 import { ProfileSettingsPage } from './components/ProfileSettingsPage';
 import { LawyerProfileSettingsPage } from './components/LawyerProfileSettingsPage';
 import { Lawyer, ConsultationType } from './types';
-import { getStoredUser } from './api';
+import { getStoredUser, type ConsultationRow } from './api';
 import { restoreSupabaseSession, signOutSupabase } from './supabaseAuth';
 import { openWhatsAppConsultation } from './whatsapp';
 
@@ -47,6 +47,23 @@ const getInitialView = (): ViewState => {
 
   return 'landing';
 };
+
+const consultationToLawyer = (row: ConsultationRow): Lawyer => ({
+  id: row.lawyer_id || 'selected-lawyer',
+  name: row.lawyer_directory?.name || 'Advokat FINPROSE',
+  specialty: row.lawyer_directory?.specialty || row.consultation_type,
+  rating: 0,
+  reviewCount: 0,
+  experience: 0,
+  price: row.price,
+  image: row.lawyer_directory?.image || '/lawyer1.png',
+  description: '',
+  isOnline: false,
+  languages: [],
+  education: [],
+  certifications: [],
+  availability: []
+});
 
 export default function App() {
   const [view, setView] = useState<ViewState>(getInitialView);
@@ -231,6 +248,35 @@ export default function App() {
           onViewDocuments={() => setView('document-vault')}
           onViewHelp={() => setView('help')}
           onViewSettings={() => setView('profile-settings')}
+          onOpenConsultation={(row) => {
+            setSelectedLawyer(consultationToLawyer(row));
+            setBookingData({
+              id: row.id,
+              consultationId: row.id,
+              clientId: row.client_id,
+              lawyerId: row.lawyer_id,
+              lawyerName: row.lawyer_directory?.name || 'Advokat FINPROSE',
+              type: row.consultation_type || ConsultationType.CHAT,
+              price: row.price,
+              day: row.scheduled_day || undefined,
+              time: row.scheduled_time || undefined
+            });
+
+            if (row.status === 'pending') {
+              setView('payment');
+              return;
+            }
+
+            const opened = openWhatsAppConsultation({
+              consultationId: row.id,
+              clientName: getStoredUser()?.name,
+              lawyerName: row.lawyer_directory?.name || 'Advokat FINPROSE',
+              type: row.consultation_type,
+              day: row.scheduled_day,
+              time: row.scheduled_time
+            });
+            if (!opened) setView('chat');
+          }}
         />
       )}
       {view === 'help' && (

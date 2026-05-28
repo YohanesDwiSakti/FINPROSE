@@ -8,6 +8,7 @@ import {
   CreditCard,
   FileText,
   Gavel,
+  History,
   Loader2,
   LogOut,
   RefreshCcw,
@@ -37,7 +38,7 @@ import {
   type PendingLawyerRow
 } from '../api';
 
-type AdminTab = 'overview' | 'lawyers' | 'payments' | 'cases' | 'clients' | 'support';
+type AdminTab = 'overview' | 'lawyers' | 'payments' | 'cases' | 'history' | 'clients' | 'support';
 
 const currency = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -57,6 +58,7 @@ const tabItems: Array<{ id: AdminTab; label: string; icon: React.ElementType }> 
   { id: 'lawyers', label: 'Lawyers', icon: ShieldCheck },
   { id: 'payments', label: 'Payments', icon: CreditCard },
   { id: 'cases', label: 'Cases', icon: Gavel },
+  { id: 'history', label: 'History', icon: History },
   { id: 'clients', label: 'Clients', icon: Users },
   { id: 'support', label: 'Support', icon: AlertCircle }
 ];
@@ -97,6 +99,8 @@ function EmptyState({ title, detail }: { title: string; detail: string }) {
   );
 }
 
+const isHistoryStatus = (status: string) => status === 'completed' || status === 'cancelled';
+
 export const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [query, setQuery] = useState('');
@@ -109,7 +113,7 @@ export const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [loadError, setLoadError] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(true);
   const [supportReply, setSupportReply] = useState<{ ticketId: string; subject: string; response: string } | null>(null);
-  const [caseFilter, setCaseFilter] = useState<'all' | 'pending' | 'paid' | 'cancelled' | 'expired'>('all');
+  const [caseFilter, setCaseFilter] = useState<'all' | 'pending' | 'paid' | 'ongoing' | 'in_review' | 'expired'>('all');
 
   const openAction = (title: string, description: string) => setModal({ title, description });
 
@@ -146,7 +150,8 @@ export const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     const openTickets = tickets.filter(item => item.status !== 'resolved').length;
     const paidRevenue = paidPayments.reduce((total, item) => total + Number(item.total_amount || 0), 0);
     const platformFees = paidPayments.reduce((total, item) => total + Number(item.platform_fee || 0), 0);
-    const casesNeedingOps = consultations.filter(item => ['pending', 'cancelled', 'expired'].includes(item.status)).length;
+    const casesNeedingOps = consultations.filter(item => !isHistoryStatus(item.status)).length;
+    const historyCount = consultations.filter(item => isHistoryStatus(item.status)).length;
 
     return [
       { label: 'Paid Revenue', value: currency.format(paidRevenue), hint: `${paidPayments.length} paid payments`, icon: CircleDollarSign },
@@ -154,7 +159,8 @@ export const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
       { label: 'Pending Lawyers', value: String(pendingLawyers.filter(item => item.verification_status === 'pending').length), hint: 'need verification', icon: ShieldCheck },
       { label: 'Open Support', value: String(openTickets), hint: 'tickets need response', icon: TicketCheck },
       { label: 'Client Accounts', value: String(clients.length), hint: 'registered clients', icon: Users },
-      { label: 'Case Watchlist', value: String(casesNeedingOps), hint: 'pending/cancelled/expired', icon: Gavel }
+      { label: 'Case Watchlist', value: String(casesNeedingOps), hint: 'not finished yet', icon: Gavel },
+      { label: 'Case History', value: String(historyCount), hint: 'completed/cancelled', icon: History }
     ];
   }, [clients.length, consultations, pendingLawyers, tickets, transactions]);
 
@@ -168,7 +174,9 @@ export const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
     return text.includes(query.toLowerCase());
   });
 
-  const filteredConsultations = consultations.filter(item => caseFilter === 'all' || item.status === caseFilter);
+  const activeConsultations = consultations.filter(item => !isHistoryStatus(item.status));
+  const historyConsultations = consultations.filter(item => isHistoryStatus(item.status));
+  const filteredConsultations = activeConsultations.filter(item => caseFilter === 'all' || item.status === caseFilter);
 
   const handleVerifyLawyer = async (id: string, name: string) => {
     try {
@@ -321,8 +329,9 @@ export const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               {[
                 { icon: ShieldCheck, title: '1. Verifikasi lawyer', detail: `${pendingLawyers.filter(item => item.verification_status === 'pending').length} akun menunggu keputusan.`, tab: 'lawyers' as AdminTab },
                 { icon: CreditCard, title: '2. Pantau pembayaran', detail: `${transactions.filter(item => item.status !== 'paid').length} transaksi belum paid.`, tab: 'payments' as AdminTab },
-                { icon: Gavel, title: '3. Cek kasus bermasalah', detail: `${consultations.filter(item => ['pending', 'cancelled', 'expired'].includes(item.status)).length} konsultasi perlu diawasi.`, tab: 'cases' as AdminTab },
-                { icon: AlertCircle, title: '4. Selesaikan support', detail: `${tickets.filter(item => item.status !== 'resolved').length} tiket masih terbuka.`, tab: 'support' as AdminTab }
+                { icon: Gavel, title: '3. Cek kasus aktif', detail: `${activeConsultations.length} konsultasi belum selesai.`, tab: 'cases' as AdminTab },
+                { icon: History, title: '4. Lihat history', detail: `${historyConsultations.length} konsultasi selesai/dibatalkan.`, tab: 'history' as AdminTab },
+                { icon: AlertCircle, title: '5. Selesaikan support', detail: `${tickets.filter(item => item.status !== 'resolved').length} tiket masih terbuka.`, tab: 'support' as AdminTab }
               ].map(item => (
                 <button
                   key={item.title}
@@ -489,14 +498,15 @@ export const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="font-display text-2xl font-bold">Case Operations</h2>
-                  <p className="mt-1 text-xs font-medium text-brand-gray-500">Pantau konsultasi yang pending payment, paid but waiting response, cancelled, atau expired.</p>
+                  <p className="mt-1 text-xs font-medium text-brand-gray-500">Pantau konsultasi yang belum selesai: pending payment, paid, ongoing, in review, atau expired.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {[
                     ['all', 'Semua'],
                     ['pending', 'Pending Payment'],
                     ['paid', 'Paid'],
-                    ['cancelled', 'Cancelled'],
+                    ['ongoing', 'Ongoing'],
+                    ['in_review', 'In Review'],
                     ['expired', 'Expired']
                   ].map(([id, label]) => (
                     <button
@@ -534,6 +544,40 @@ export const AdminDashboard = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
               ))}
               {filteredConsultations.length === 0 && <div className="p-6"><EmptyState title="Tidak ada konsultasi cocok" detail="Ubah filter untuk melihat status konsultasi lainnya." /></div>}
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'history' && (
+          <section className="rounded-lg border border-black/10 bg-white">
+            <div className="border-b border-brand-gray-100 p-6">
+              <h2 className="font-display text-2xl font-bold">Case History</h2>
+              <p className="mt-1 text-xs font-medium text-brand-gray-500">Arsip final admin. Hanya konsultasi dengan status completed atau cancelled.</p>
+            </div>
+            <div className="divide-y divide-brand-gray-100">
+              {historyConsultations.map(item => (
+                <div key={item.id} className="grid grid-cols-1 gap-4 p-6 xl:grid-cols-[1.2fr_1fr_1fr_auto] xl:items-center">
+                  <div>
+                    <p className="text-sm font-bold">{item.profiles?.full_name || 'Klien FINPROSE'}</p>
+                    <p className="mt-1 text-xs text-brand-gray-500">{item.profiles?.email || 'Email tidak tersedia'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">{item.lawyer_directory?.name || 'Advokat FINPROSE'}</p>
+                    <p className="mt-1 text-xs text-brand-gray-500">{item.consultation_type} â€¢ {item.scheduled_day || 'Belum dijadwalkan'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">{currency.format(item.price)}</p>
+                    <p className="mt-1 text-xs text-brand-gray-500">{shortDate.format(new Date(item.created_at))}</p>
+                  </div>
+                  <div className="flex items-center justify-end gap-3">
+                    <Pill value={item.status} />
+                    <button onClick={() => openAction(`History ${item.id.slice(0, 8)}`, item.notes || 'Konsultasi ini sudah masuk arsip final.')} className="rounded-lg border border-brand-gray-200 p-3 hover:bg-brand-gray-50" title="Detail">
+                      <FileText className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {historyConsultations.length === 0 && <div className="p-6"><EmptyState title="History masih kosong" detail="Kasus baru masuk ke sini setelah statusnya completed atau cancelled." /></div>}
             </div>
           </section>
         )}

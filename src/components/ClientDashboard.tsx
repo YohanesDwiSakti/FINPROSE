@@ -71,6 +71,8 @@ const consultationDate = (row: ConsultationRow) => row.scheduled_day || new Intl
 
 const consultationTime = (row: ConsultationRow) => row.scheduled_time || '-';
 
+const isHistoryStatus = (status: string) => status === 'completed' || status === 'cancelled';
+
 const NotificationPanel = ({ isOpen, onClose, onViewAll }: { isOpen: boolean, onClose: () => void, onViewAll: () => void }) => {
   const notifications = [
     { id: 1, title: 'Pembayaran Dikonfirmasi', desc: 'Sesi dengan Budi Santoso telah dibayar.', time: '2m ago', icon: CheckCircle2, color: 'text-green-500' },
@@ -226,14 +228,16 @@ export const ClientDashboard = ({
   onViewHistory,
   onViewDocuments,
   onViewHelp,
-  onViewSettings
+  onViewSettings,
+  onOpenConsultation
 }: { 
   onLogout: () => void,
   onBrowseLawyers: () => void,
   onViewHistory?: () => void,
   onViewDocuments?: () => void,
   onViewHelp?: () => void,
-  onViewSettings?: () => void
+  onViewSettings?: () => void,
+  onOpenConsultation?: (consultation: ConsultationRow) => void
 }) => {
   const [isNotifOpen, setIsNotifOpen] = React.useState(false);
   const [modal, setModal] = React.useState<{ title: string; description: string } | null>(null);
@@ -273,9 +277,10 @@ export const ClientDashboard = ({
     };
   }, [user.id]);
 
-  const activeConsultations = useMemo(() => consultations.filter(item => item.status !== 'completed' && item.status !== 'cancelled'), [consultations]);
-  const nextConsultation = activeConsultations[0] || consultations[0] || null;
-  const completedCount = consultations.filter(item => item.status === 'completed').length || ACTIVE_CONSULTATIONS.filter(item => item.status === 'Completed').length;
+  const activeConsultations = useMemo(() => consultations.filter(item => !isHistoryStatus(item.status)), [consultations]);
+  const historyConsultations = useMemo(() => consultations.filter(item => isHistoryStatus(item.status)), [consultations]);
+  const nextConsultation = activeConsultations[0] || null;
+  const completedCount = historyConsultations.length || ACTIVE_CONSULTATIONS.filter(item => item.status === 'Completed').length;
   const pendingPaymentCount = consultations.filter(item => item.status === 'pending').length;
   const paidPaymentTotal = consultations
     .flatMap(item => item.app_payments || [])
@@ -283,7 +288,7 @@ export const ClientDashboard = ({
     .reduce((total, payment) => total + Number(payment.total_amount || 0), 0);
   const nextStatus = nextConsultation ? statusCopy[nextConsultation.status] || statusCopy.pending : null;
   const recentRows = consultations.length > 0
-    ? consultations.slice(0, 4)
+    ? activeConsultations.slice(0, 4)
     : user.id === 'guest-client' ? ACTIVE_CONSULTATIONS.map(item => ({
         id: item.id,
         lawyer_directory: { name: item.lawyerName, specialty: item.specialty, image: '' },
@@ -292,7 +297,7 @@ export const ClientDashboard = ({
         status: item.status === 'Completed' ? 'completed' : item.status === 'Ongoing' ? 'ongoing' : 'in_review',
         price: item.price,
         created_at: new Date().toISOString()
-      } as ConsultationRow)) : [];
+      } as ConsultationRow)).filter(item => !isHistoryStatus(item.status)) : [];
   const recentMessages = user.id === 'guest-client' ? RECENT_MESSAGES : [];
 
   return (
@@ -383,10 +388,10 @@ export const ClientDashboard = ({
                     )}
                   </div>
                   <button 
-                    onClick={nextConsultation ? onViewHistory : onBrowseLawyers}
+                    onClick={nextConsultation ? () => onOpenConsultation?.(nextConsultation) : onBrowseLawyers}
                     className="w-full bg-white text-brand-black py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-zinc-200 transition-all font-display"
                   >
-                    {nextConsultation ? 'Buka Detail Konsultasi' : 'Cari Advokat Sekarang'}
+                    {nextConsultation ? 'Buka Konsultasi Aktif' : 'Cari Advokat Sekarang'}
                   </button>
                 </div>
                 <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/5 blur-[100px] rounded-full"></div>
@@ -532,12 +537,12 @@ export const ClientDashboard = ({
           {/* Table Archive */}
           <section className="lg:col-span-8 space-y-8">
             <div className="flex items-center justify-between px-2">
-              <h2 className="text-2xl font-bold font-display">Riwayat Kedatangan</h2>
+              <h2 className="text-2xl font-bold font-display">Konsultasi Aktif</h2>
               <button 
                 onClick={onViewHistory}
                 className="text-[10px] font-bold uppercase tracking-widest text-brand-black border-b-2 border-brand-black pb-1 hover:text-brand-gray-400 hover:border-brand-gray-400 transition-colors"
               >
-                Lihat Semua Riwayat
+                Lihat History
               </button>
             </div>
             <div className="bg-white rounded-[48px] border border-brand-gray-100 overflow-hidden shadow-sm">
@@ -554,8 +559,8 @@ export const ClientDashboard = ({
                   {recentRows.length === 0 && (
                     <tr>
                       <td colSpan={4} className="px-8 py-12 text-center">
-                        <p className="text-sm font-bold text-brand-black">Belum ada konsultasi</p>
-                        <p className="mt-2 text-xs font-medium text-brand-gray-500">Klik Cari Advokat untuk membuat booking pertama.</p>
+                        <p className="text-sm font-bold text-brand-black">Belum ada konsultasi aktif</p>
+                        <p className="mt-2 text-xs font-medium text-brand-gray-500">Kasus selesai atau dibatalkan dipindahkan ke History Kasus.</p>
                       </td>
                     </tr>
                   )}
@@ -588,7 +593,16 @@ export const ClientDashboard = ({
                         </span>
                       </td>
                       <td className="px-8 py-8 text-right">
-                        <button onClick={() => setModal({ title: `Detail ${item.id}`, description: `${copy.action} Klik Riwayat Kasus untuk melihat catatan, dokumen, dan progres lengkap.` })} className="p-3 hover:bg-brand-black hover:text-white rounded-2xl transition-all text-brand-gray-200">
+                        <button
+                          onClick={() => {
+                            if (onOpenConsultation) {
+                              onOpenConsultation(item);
+                              return;
+                            }
+                            setModal({ title: `Detail ${item.id}`, description: `${copy.action} Konsultasi ini masih aktif, jadi belum masuk history sampai selesai atau dibatalkan.` });
+                          }}
+                          className="p-3 hover:bg-brand-black hover:text-white rounded-2xl transition-all text-brand-gray-200"
+                        >
                           <ArrowUpRight className="w-5 h-5" />
                         </button>
                       </td>

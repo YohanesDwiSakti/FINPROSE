@@ -63,7 +63,7 @@ export interface Consultation {
   specialty: string;
   date: string;
   time: string;
-  status: 'Pending' | 'Ongoing' | 'Completed' | 'In Review';
+  status: 'Pending' | 'Ongoing' | 'Completed' | 'In Review' | 'Cancelled';
   type: 'In-Person' | 'Virtual Session';
   price: number;
   lawyerNotes?: string;

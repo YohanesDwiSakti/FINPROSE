@@ -74,6 +74,8 @@ const formatConsultationDate = (item: ConsultationRow) => item.scheduled_day || 
   year: 'numeric'
 }).format(new Date(item.created_at));
 
+const isHistoryStatus = (status: string) => status === 'completed' || status === 'cancelled';
+
 const Sidebar = ({ onLogout, activeTab, setActiveTab, onViewProfile }: { onLogout: () => void, activeTab: string, setActiveTab: (t: string) => void, onViewProfile?: () => void }) => {
   const items = [
     { id: 'overview', icon: LayoutDashboard, label: 'Overview' },
@@ -188,19 +190,20 @@ export const LawyerDashboard = ({
     const grossRevenue = paidPayments.reduce((total, payment) => total + (payment.total_amount || 0), 0);
     const activeCount = consultations.filter(item => ['paid', 'ongoing', 'in_review'].includes(item.status)).length;
     const pendingCount = consultations.filter(item => item.status === 'pending').length;
+    const activeScheduleCount = consultations.filter(item => !isHistoryStatus(item.status)).length;
 
     return {
       revenue: grossRevenue,
       activeCount,
       pendingCount,
-      scheduleCount: consultations.length || (user.id === 'local-lawyer' ? SCHEDULE.length : 0)
+      scheduleCount: activeScheduleCount || (user.id === 'local-lawyer' ? SCHEDULE.length : 0)
     };
   }, [consultations, user.id]);
 
   const scheduleRows = useMemo(() => {
     if (consultations.length === 0) return user.id === 'local-lawyer' ? SCHEDULE : [];
 
-    return consultations.slice(0, 5).map(item => ({
+    return consultations.filter(item => !isHistoryStatus(item.status)).slice(0, 5).map(item => ({
       id: item.id,
       time: `${item.scheduled_time || '-'} - 60m`,
       client: item.profiles?.full_name || 'Klien FINPROSE',
@@ -214,6 +217,8 @@ export const LawyerDashboard = ({
     const orderedStatus = ['pending', 'paid', 'ongoing', 'in_review', 'completed', 'cancelled'];
     return [...consultations].sort((a, b) => orderedStatus.indexOf(a.status) - orderedStatus.indexOf(b.status));
   }, [consultations]);
+  const activeWorkRows = useMemo(() => priorityRows.filter(item => !isHistoryStatus(item.status)), [priorityRows]);
+  const historyRows = useMemo(() => priorityRows.filter(item => isHistoryStatus(item.status)), [priorityRows]);
 
   const lawyerPayments = useMemo(() => consultations.flatMap(item => (item.app_payments || []).map(payment => ({
     ...payment,
@@ -488,7 +493,7 @@ export const LawyerDashboard = ({
             </header>
 
             <div className="space-y-4">
-              {priorityRows.map(item => {
+              {activeWorkRows.map(item => {
                 const copy = workStatusCopy[item.status] || workStatusCopy.pending;
                 return (
                   <div key={item.id} className="grid grid-cols-1 gap-5 rounded-3xl border border-brand-gray-100 bg-white p-6 shadow-sm lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
@@ -533,11 +538,11 @@ export const LawyerDashboard = ({
                 );
               })}
 
-              {priorityRows.length === 0 && (
+              {activeWorkRows.length === 0 && (
                 <div className="rounded-3xl border border-dashed border-brand-gray-200 bg-brand-gray-50 p-10 text-center">
                   <Calendar className="mx-auto mb-4 h-8 w-8 text-brand-gray-300" />
-                  <p className="text-sm font-bold">Belum ada booking masuk</p>
-                  <p className="mt-2 text-xs font-medium text-brand-gray-500">Begitu klien membuat konsultasi, advokat bisa menerima dan masuk sesi dari halaman ini.</p>
+                  <p className="text-sm font-bold">Belum ada booking aktif</p>
+                  <p className="mt-2 text-xs font-medium text-brand-gray-500">Kasus selesai atau dibatalkan sudah dipindahkan ke Riwayat.</p>
                 </div>
               )}
             </div>
@@ -548,7 +553,7 @@ export const LawyerDashboard = ({
           <section className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
             <header className="border-b border-brand-gray-100 pb-8">
               <h1 className="text-5xl font-bold font-display tracking-tight">Riwayat Kasus.</h1>
-              <p className="mt-3 text-sm font-medium text-brand-gray-500">Arsip pekerjaan advokat: status, klien, jadwal, biaya, dan catatan awal.</p>
+              <p className="mt-3 text-sm font-medium text-brand-gray-500">Hanya kasus yang sudah selesai atau dibatalkan. Booking pending dan sesi aktif tetap berada di Jadwal.</p>
             </header>
 
             <div className="overflow-hidden rounded-3xl border border-brand-gray-100 bg-white">
@@ -562,7 +567,7 @@ export const LawyerDashboard = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand-gray-50">
-                  {priorityRows.map(item => {
+                  {historyRows.map(item => {
                     const copy = workStatusCopy[item.status] || workStatusCopy.pending;
                     return (
                       <tr key={item.id} className="hover:bg-brand-gray-50">
@@ -587,7 +592,7 @@ export const LawyerDashboard = ({
                   })}
                 </tbody>
               </table>
-              {priorityRows.length === 0 && (
+              {historyRows.length === 0 && (
                 <div className="p-10 text-center text-sm font-bold text-brand-gray-400">Riwayat kasus belum tersedia.</div>
               )}
             </div>

@@ -18,10 +18,13 @@ type CaseView = Consultation & {
 
 const statusLabel = (status: ConsultationRow['status']): Consultation['status'] => {
   if (status === 'completed') return 'Completed';
+  if (status === 'cancelled') return 'Cancelled';
   if (status === 'ongoing' || status === 'paid') return 'Ongoing';
   if (status === 'in_review') return 'In Review';
   return 'Pending';
 };
+
+const isHistoryStatus = (status: ConsultationRow['status']) => status === 'completed' || status === 'cancelled';
 
 const typeLabel = (type: string): Consultation['type'] => {
   return type === 'chat' ? 'Virtual Session' : 'Virtual Session';
@@ -51,9 +54,7 @@ const mapConsultation = (row: ConsultationRow): CaseView => ({
 });
 
 export const CaseHistoryPage = ({ 
-  onBack,
-  onContinueDiscussion,
-  onPayConsultation
+  onBack
 }: { 
   onBack: () => void,
   onContinueDiscussion?: (data: CaseView) => void,
@@ -61,7 +62,7 @@ export const CaseHistoryPage = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCase, setSelectedCase] = useState<CaseView | null>(null);
-  const [cases, setCases] = useState<CaseView[]>(ACTIVE_CONSULTATIONS.map(item => ({
+  const [cases, setCases] = useState<CaseView[]>(ACTIVE_CONSULTATIONS.filter(item => item.status === 'Completed').map(item => ({
     ...item,
     consultationId: item.id,
     consultationType: 'chat'
@@ -81,11 +82,9 @@ export const CaseHistoryPage = ({
     fetchClientConsultations(user.id)
       .then((rows) => {
         if (!mounted) return;
-        const mapped = rows.map(mapConsultation);
-        if (mapped.length > 0) {
-          setCases(mapped);
-          setSelectedCase(mapped[0]);
-        }
+        const mapped = rows.filter(row => isHistoryStatus(row.status)).map(mapConsultation);
+        setCases(mapped);
+        setSelectedCase(mapped[0] || null);
       })
       .catch((error) => {
         if (mounted) setLoadError(error.message || 'Gagal memuat riwayat konsultasi');
@@ -108,6 +107,7 @@ export const CaseHistoryPage = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed': return 'bg-green-50 text-green-700 border-green-100';
+      case 'Cancelled': return 'bg-red-50 text-red-700 border-red-100';
       case 'Ongoing': return 'bg-brand-black text-white border-transparent';
       case 'Pending': return 'bg-amber-50 text-amber-700 border-amber-100';
       default: return 'bg-brand-gray-50 text-brand-gray-500 border-brand-gray-100';
@@ -124,8 +124,8 @@ export const CaseHistoryPage = ({
               <ArrowLeft className="w-5 h-5 text-brand-black" />
             </button>
             <div>
-              <h1 className="text-xl font-bold font-display">Riwayat Kasus</h1>
-              <p className="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest mt-0.5">Semua data konsultasi dan dokumen hukum Anda</p>
+              <h1 className="text-xl font-bold font-display">History Kasus</h1>
+              <p className="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest mt-0.5">Hanya konsultasi selesai atau dibatalkan</p>
             </div>
           </div>
           
@@ -151,13 +151,21 @@ export const CaseHistoryPage = ({
         {/* Case List */}
         <div className="lg:col-span-4 space-y-4">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-brand-gray-400">Kasus Terbaru</h2>
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-brand-gray-400">History Terbaru</h2>
             <span className="text-[10px] font-bold text-brand-black bg-brand-gray-100 px-2 py-1 rounded-md">{isLoading ? 'Memuat...' : `${filteredCases.length} Kasus`}</span>
           </div>
 
           {loadError && (
             <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-xs font-bold text-amber-700">
               {loadError}. Menampilkan data contoh sementara.
+            </div>
+          )}
+
+          {!isLoading && filteredCases.length === 0 && (
+            <div className="rounded-3xl border border-dashed border-brand-gray-200 bg-white p-8 text-center">
+              <History className="mx-auto mb-3 h-7 w-7 text-brand-gray-300" />
+              <p className="text-xs font-bold uppercase tracking-widest text-brand-gray-400">Belum ada history</p>
+              <p className="mt-2 text-xs font-medium leading-5 text-brand-gray-500">Kasus pending, paid, atau sedang berjalan tetap berada di dashboard aktif.</p>
             </div>
           )}
           
@@ -249,7 +257,7 @@ export const CaseHistoryPage = ({
                         {[
                             { label: 'Booking Dikonfirmasi', time: selectedCase.date, completed: true },
                             { label: 'Sesi Konsultasi', time: selectedCase.date, completed: selectedCase.status !== 'Pending' },
-                            { label: 'Penyelesaian Kasus', time: selectedCase.status === 'Completed' ? selectedCase.date : '-', completed: selectedCase.status === 'Completed' }
+                            { label: selectedCase.status === 'Cancelled' ? 'Kasus Dibatalkan' : 'Penyelesaian Kasus', time: selectedCase.date, completed: selectedCase.status === 'Completed' || selectedCase.status === 'Cancelled' }
                         ].map((step, idx) => (
                             <div key={idx} className="flex items-start space-x-6 relative">
                                 <div className={`w-8 h-8 rounded-full border-4 border-white shadow-sm flex items-center justify-center z-10 transition-colors ${step.completed ? 'bg-brand-black' : 'bg-brand-gray-200'}`}>
@@ -306,16 +314,17 @@ export const CaseHistoryPage = ({
               <div className="flex items-center space-x-4 pt-4">
                  <button 
                     onClick={() => {
-                        if (selectedCase.status === 'Pending') {
-                          onPayConsultation?.(selectedCase);
-                          return;
-                        }
-                        onContinueDiscussion?.(selectedCase);
+                        setModal({
+                          title: selectedCase.status === 'Completed' ? 'Beri Review' : 'Kasus Dibatalkan',
+                          description: selectedCase.status === 'Completed'
+                            ? 'Review akan membantu mengukur kualitas layanan advokat untuk konsultasi yang sudah selesai.'
+                            : 'Kasus ini sudah dibatalkan. Hubungi admin jika perlu tindak lanjut refund atau penjadwalan ulang.'
+                        });
                     }}
                     className="flex-1 bg-brand-black text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-black/10 hover:translate-y-[-2px] transition-all flex items-center justify-center space-x-2"
                  >
-                    {selectedCase.status === 'Pending' ? <CreditCard className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
-                    <span>{selectedCase.status === 'Pending' ? 'Bayar Sekarang' : 'Lanjutkan Diskusi'}</span>
+                    {selectedCase.status === 'Completed' ? <MessageSquare className="w-4 h-4" /> : <CreditCard className="w-4 h-4" />}
+                    <span>{selectedCase.status === 'Completed' ? 'Beri Review' : 'Lihat Status Refund'}</span>
                  </button>
                  <button onClick={() => setModal({ title: 'Laporkan Masalah', description: 'Laporan akan dikirim ke admin dengan lampiran detail konsultasi, transaksi, dan chat terkait.' })} className="flex-1 bg-white border border-brand-gray-100 text-brand-black py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-brand-gray-50 transition-all flex items-center justify-center space-x-2">
                     <AlertCircle className="w-4 h-4" />
@@ -328,8 +337,8 @@ export const CaseHistoryPage = ({
               <div className="w-20 h-20 bg-brand-gray-50 rounded-full flex items-center justify-center mb-6">
                 <History className="w-8 h-8 text-brand-gray-200" />
               </div>
-              <h3 className="text-lg font-bold font-display mb-2">Pilih riwayat konsultasi</h3>
-              <p className="text-xs text-brand-gray-400 font-medium max-w-xs uppercase tracking-[0.1em] leading-relaxed">Pilih kasus dari daftar di samping untuk melihat rincian, dokumen, dan catatan advokat.</p>
+              <h3 className="text-lg font-bold font-display mb-2">Belum ada history dipilih</h3>
+              <p className="text-xs text-brand-gray-400 font-medium max-w-xs uppercase tracking-[0.1em] leading-relaxed">History hanya berisi kasus yang sudah selesai atau dibatalkan.</p>
             </div>
           )}
         </div>
