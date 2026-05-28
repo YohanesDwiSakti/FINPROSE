@@ -151,6 +151,7 @@ export default async function handler(req, res) {
       paymentId,
       consultationId,
       status: 'pending',
+      externalReference: paymentRef,
       amount: baseAmount,
       adminFee,
       taxAmount,

@@ -157,6 +157,28 @@ export type DocumentRow = {
   created_at: string;
 };
 
+export type ClientPaymentRow = {
+  id: string;
+  consultation_id: string;
+  client_id: string | null;
+  total_amount: number;
+  method: string;
+  provider: string | null;
+  status: 'pending' | 'paid' | 'failed' | 'refunded' | 'expired';
+  external_reference: string | null;
+  created_at: string;
+  paid_at: string | null;
+  app_consultations?: {
+    consultation_type: string;
+    scheduled_day: string | null;
+    status: ConsultationStatus;
+    lawyer_directory?: {
+      name: string;
+      specialty: string;
+    } | null;
+  } | null;
+};
+
 export type AppMessageRow = {
   id: string;
   chat_session_id: string;
@@ -529,6 +551,44 @@ export async function fetchDocuments(ownerId: string) {
   return (data || []) as DocumentRow[];
 }
 
+export async function fetchClientPayments(clientId: string) {
+  const supabase = requireSupabase();
+  const { data, error } = await supabase
+    .from('app_payments')
+    .select('id, consultation_id, client_id, total_amount, method, provider, status, external_reference, created_at, paid_at, app_consultations(consultation_type, scheduled_day, status, lawyer_directory(name, specialty))')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false })
+    .limit(6);
+
+  if (error) throw error;
+  return (data || []).map((row: any) => {
+    const consultation = firstRelation(row.app_consultations) as any;
+    const lawyer = firstRelation(consultation?.lawyer_directory) as any;
+
+    return {
+      id: row.id,
+      consultation_id: row.consultation_id,
+      client_id: row.client_id,
+      total_amount: row.total_amount,
+      method: row.method,
+      provider: row.provider,
+      status: row.status,
+      external_reference: row.external_reference,
+      created_at: row.created_at,
+      paid_at: row.paid_at,
+      app_consultations: consultation ? {
+        consultation_type: consultation.consultation_type,
+        scheduled_day: consultation.scheduled_day,
+        status: consultation.status,
+        lawyer_directory: lawyer ? {
+          name: lawyer.name,
+          specialty: lawyer.specialty
+        } : null
+      } : null
+    };
+  }) as ClientPaymentRow[];
+}
+
 export async function uploadLegalDocument(file: File, consultationId?: string) {
   const supabase = requireSupabase();
   const user = getStoredUser();
@@ -736,6 +796,7 @@ export function createPayment(payload: {
     paymentId: string;
     consultationId: string;
     status: 'pending' | 'paid' | 'failed' | 'expired';
+    externalReference: string;
     amount: number;
     adminFee: number;
     taxAmount: number;
@@ -750,6 +811,18 @@ export function createPayment(payload: {
   }>('/payments', {
     method: 'POST',
     body: JSON.stringify(payload)
+  });
+}
+
+export function confirmPaymentStatus(orderId: string) {
+  return request<{
+    status: 'pending' | 'paid' | 'failed' | 'refunded' | 'expired';
+    orderId: string;
+    consultationStatus: ConsultationStatus | null;
+    payment?: ClientPaymentRow | null;
+  }>('/payments/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ orderId })
   });
 }
 
