@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { createPayment, getStoredUser, updateConsultationStatus } from '../api';
 import { ActionModal } from './ActionModal';
-import { consultationTypeLabel, openWhatsAppConsultation } from '../whatsapp';
+import { ConsultationType } from '../types';
 
 declare global {
   interface Window {
@@ -51,6 +51,12 @@ const loadMidtransSnap = (snapJsUrl: string, clientKey: string) => {
   });
 };
 
+const consultationTypeLabel = (type?: string) => {
+  if (type === ConsultationType.VIDEO) return 'Video call internal';
+  if (type === ConsultationType.PHONE) return 'Telepon internal';
+  return 'Chat internal';
+};
+
 export const PaymentPage = ({ 
   bookingData, 
   onBack, 
@@ -64,28 +70,6 @@ export const PaymentPage = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState('');
   const [modal, setModal] = useState<{ title: string; description: string } | null>(null);
-
-  const openWhatsAppAfterPayment = () => {
-    const user = getStoredUser();
-    const opened = openWhatsAppConsultation({
-      consultationId: bookingData?.consultationId || bookingData?.id,
-      clientName: user?.name,
-      lawyer: bookingData?.lawyer,
-      lawyerName: bookingData?.lawyerName,
-      type: bookingData?.type,
-      day: bookingData?.day,
-      time: bookingData?.time,
-      notes: bookingData?.notes
-    });
-
-    if (!opened) {
-      setModal({
-        title: 'Nomor WhatsApp Belum Diatur',
-        description: 'Pembayaran berhasil. Isi VITE_FINPROSE_WHATSAPP_NUMBER di environment Vercel atau tambahkan nomor WhatsApp advokat agar customer langsung diarahkan ke WhatsApp.'
-      });
-      onSuccess();
-    }
-  };
 
   const methods: PaymentMethod[] = [
     { id: 'bank', name: 'Transfer Bank', icon: Building2, description: 'Virtual Account (BCA, Mandiri, BNI)' },
@@ -122,7 +106,7 @@ export const PaymentPage = ({
             .catch(() => null)
             .finally(() => {
               setIsProcessing(false);
-              openWhatsAppAfterPayment();
+              onSuccess();
             });
         },
         onPending: () => {
@@ -197,7 +181,7 @@ export const PaymentPage = ({
               <div className="space-y-1">
                 <h4 className="text-sm font-bold">Pembayaran Aman & Terpercaya</h4>
                 <p className="text-[10px] text-brand-gray-400 font-medium leading-relaxed uppercase tracking-wider">
-                  Nomor WhatsApp konsultasi hanya dibuka setelah pembayaran sukses. Setelah bayar, Anda langsung diarahkan ke WhatsApp dengan pesan otomatis.
+                  Setelah pembayaran sukses, sesi akan terbuka di sistem FINPROSE: chat, telepon, atau video call sesuai pilihan booking.
                 </p>
               </div>
             </section>

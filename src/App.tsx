@@ -27,7 +27,6 @@ import { LawyerProfileSettingsPage } from './components/LawyerProfileSettingsPag
 import { Lawyer, ConsultationType } from './types';
 import { getStoredUser, type ConsultationRow } from './api';
 import { restoreSupabaseSession, signOutSupabase } from './supabaseAuth';
-import { openWhatsAppConsultation } from './whatsapp';
 
 type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'otp' | 'lawyer-dash' | 'client-dash' | 'admin-dash' | 'lawyer-list' | 'lawyer-detail' | 'booking' | 'chat' | 'meeting' | 'case-history' | 'document-vault' | 'payment' | 'review' | 'help' | 'profile-settings' | 'lawyer-profile-settings';
 
@@ -64,6 +63,12 @@ const consultationToLawyer = (row: ConsultationRow): Lawyer => ({
   certifications: [],
   availability: []
 });
+
+const viewForConsultationType = (type?: string): ViewState => {
+  if (type === ConsultationType.VIDEO) return 'meeting';
+  if (type === ConsultationType.PHONE) return 'meeting';
+  return 'chat';
+};
 
 export default function App() {
   const [view, setView] = useState<ViewState>(getInitialView);
@@ -267,15 +272,8 @@ export default function App() {
               return;
             }
 
-            const opened = openWhatsAppConsultation({
-              consultationId: row.id,
-              clientName: getStoredUser()?.name,
-              lawyerName: row.lawyer_directory?.name || 'Advokat FINPROSE',
-              type: row.consultation_type,
-              day: row.scheduled_day,
-              time: row.scheduled_time
-            });
-            if (!opened) setView('chat');
+            setMeetingMode(row.consultation_type === ConsultationType.PHONE ? 'voice' : 'video');
+            setView(viewForConsultationType(row.consultation_type));
           }}
         />
       )}
@@ -291,80 +289,6 @@ export default function App() {
       {view === 'case-history' && (
         <CaseHistoryPage 
           onBack={() => setView('client-dash')} 
-          onPayConsultation={(data) => {
-            setBookingData({
-              id: data.consultationId,
-              consultationId: data.consultationId,
-              clientId: data.clientId,
-              lawyerId: data.lawyerId,
-              lawyerName: data.lawyerName,
-              type: data.consultationType || ConsultationType.CHAT,
-              price: data.price,
-              day: data.date,
-              time: data.time
-            });
-            import('./constants').then(c => {
-              const found = c.LAWYERS.find(lawyer => lawyer.id === data.lawyerId);
-              setSelectedLawyer(found || {
-                id: data.lawyerId || 'selected-lawyer',
-                name: data.lawyerName,
-                specialty: data.specialty,
-                rating: 0,
-                reviewCount: 0,
-                experience: 0,
-                price: data.price,
-                image: '/lawyer1.png',
-                description: '',
-                isOnline: false,
-                languages: [],
-                education: [],
-                certifications: [],
-                availability: []
-              });
-              setView('payment');
-            });
-          }}
-          onContinueDiscussion={(data) => {
-            const user = getStoredUser();
-            const opened = openWhatsAppConsultation({
-              consultationId: data.consultationId,
-              clientName: user?.name,
-              lawyerName: data.lawyerName,
-              type: data.consultationType,
-              day: data.date,
-              time: data.time
-            });
-            if (!opened) {
-              setSelectedLawyer({
-                id: data.lawyerId || 'selected-lawyer',
-                name: data.lawyerName,
-                specialty: data.specialty,
-                rating: 0,
-                reviewCount: 0,
-                experience: 0,
-                price: data.price,
-                image: '/lawyer1.png',
-                description: '',
-                isOnline: false,
-                languages: [],
-                education: [],
-                certifications: [],
-                availability: []
-              });
-              setBookingData({
-                id: data.consultationId,
-                consultationId: data.consultationId,
-                clientId: data.clientId,
-                lawyerId: data.lawyerId,
-                lawyerName: data.lawyerName,
-                type: data.consultationType || ConsultationType.CHAT,
-                price: data.price,
-                day: data.date,
-                time: data.time
-              });
-              setView('chat');
-            }
-          }}
         />
       )}
       {view === 'document-vault' && (

@@ -205,7 +205,7 @@ export const LawyerDetail = ({
                         className="w-full py-4 bg-white text-brand-black rounded-2xl text-xs font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-3"
                     >
                         <MessageSquare className="w-4 h-4" />
-                        <span>Booking Chat WhatsApp</span>
+                        <span>Booking Chat</span>
                     </button>
                     <div className="grid grid-cols-2 gap-3">
                         <button 
@@ -213,14 +213,14 @@ export const LawyerDetail = ({
                             className="bg-zinc-900 border border-zinc-800 py-4 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-zinc-800 transition-colors"
                         >
                             <Video className="w-4 h-4" />
-                            <span className="text-[8px] font-bold uppercase tracking-widest">Video WA</span>
+                            <span className="text-[8px] font-bold uppercase tracking-widest">Video Call</span>
                         </button>
                         <button 
                             onClick={() => onAction('phone')}
                             className="bg-zinc-900 border border-zinc-800 py-4 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-zinc-800 transition-colors"
                         >
                             <Phone className="w-4 h-4" />
-                            <span className="text-[8px] font-bold uppercase tracking-widest">Telepon WA</span>
+                            <span className="text-[8px] font-bold uppercase tracking-widest">Telepon</span>
                         </button>
                     </div>
                 </div>
@@ -228,7 +228,7 @@ export const LawyerDetail = ({
                 <div className="bg-zinc-900/50 p-4 rounded-2xl flex items-start space-x-3 border border-zinc-900">
                     <Info className="w-4 h-4 text-zinc-600 mt-0.5" />
                     <p className="text-[9px] text-zinc-500 font-medium leading-relaxed uppercase tracking-wider">
-                        Setelah pembayaran sukses, Anda langsung diarahkan ke WhatsApp untuk memulai konsultasi.
+                        Setelah pembayaran sukses, konsultasi langsung dibuka di sistem FINPROSE sesuai mode yang dipilih.
                     </p>
                 </div>
             </div>

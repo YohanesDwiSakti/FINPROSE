@@ -20,7 +20,6 @@ export interface Lawyer {
   education: string[];
   certifications: string[];
   availability: { day: string; times: string[] }[];
-  whatsappNumber?: string;
 }
 
 export enum MessageType {

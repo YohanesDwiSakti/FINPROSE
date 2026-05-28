@@ -56,9 +56,7 @@ const mapConsultation = (row: ConsultationRow): CaseView => ({
 export const CaseHistoryPage = ({ 
   onBack
 }: { 
-  onBack: () => void,
-  onContinueDiscussion?: (data: CaseView) => void,
-  onPayConsultation?: (data: CaseView) => void
+  onBack: () => void
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCase, setSelectedCase] = useState<CaseView | null>(null);
