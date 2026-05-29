@@ -7,7 +7,7 @@ function bearerToken(req) {
   return header.slice(7).trim();
 }
 
-async function requireLawyer(req, requestedLawyerId) {
+async function resolveLawyerId(req, requestedLawyerId) {
   const token = bearerToken(req);
   const url = supabaseUrl();
   const serviceKey = supabaseServiceKey();
@@ -32,9 +32,8 @@ async function requireLawyer(req, requestedLawyerId) {
     throw new Error('Akses advokat ditolak.');
   }
 
-  if (profile.role !== 'admin' && requestedLawyerId !== data.user.id) {
-    throw new Error('Akses konsultasi advokat ditolak.');
-  }
+  if (profile.role === 'admin') return requestedLawyerId || data.user.id;
+  return data.user.id;
 }
 
 export default async function handler(req, res) {
@@ -46,13 +45,8 @@ export default async function handler(req, res) {
       return;
     }
 
-    const lawyerId = String(req.query?.lawyerId || '').trim();
-    if (!lawyerId) {
-      sendJson(res, 400, { error: 'Lawyer ID wajib tersedia.' });
-      return;
-    }
-
-    await requireLawyer(req, lawyerId);
+    const requestedLawyerId = String(req.query?.lawyerId || '').trim();
+    const lawyerId = await resolveLawyerId(req, requestedLawyerId);
 
     const rows = await supabaseRest(
       'GET',

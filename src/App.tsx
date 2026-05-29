@@ -24,7 +24,7 @@ import { HelpPage } from './components/HelpPage';
 import { ProfileSettingsPage } from './components/ProfileSettingsPage';
 import { LawyerProfileSettingsPage } from './components/LawyerProfileSettingsPage';
 import { Lawyer, ConsultationType } from './types';
-import { getStoredUser, type ConsultationRow } from './api';
+import { getStoredUser, updateConsultationStatus, type ConsultationRow } from './api';
 import { restoreSupabaseSession, signOutSupabase } from './supabaseAuth';
 
 type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'otp' | 'lawyer-dash' | 'client-dash' | 'admin-dash' | 'lawyer-list' | 'lawyer-detail' | 'booking' | 'chat' | 'meeting' | 'case-history' | 'document-vault' | 'review' | 'help' | 'profile-settings' | 'lawyer-profile-settings';
@@ -117,8 +117,17 @@ export default function App() {
 
   const activeRole = getStoredUser()?.role || 'client';
   const activeConsultationRole = activeRole === 'lawyer' ? 'lawyer' : 'client';
-  const leaveConsultationView = () => {
-    setView(activeRole === 'lawyer' ? 'lawyer-dash' : 'review');
+  const leaveConsultationView = async () => {
+    if (activeRole === 'lawyer') {
+      setView('lawyer-dash');
+      return;
+    }
+
+    const consultationId = bookingData?.consultationId || bookingData?.id;
+    if (consultationId) {
+      await updateConsultationStatus(consultationId, 'completed', 'Session ended by client').catch(() => null);
+    }
+    setView('review');
   };
 
   return (
