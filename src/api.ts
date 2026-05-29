@@ -674,6 +674,21 @@ export async function getOrCreateChatSession(payload: {
   clientId?: string | null;
   lawyerId: string;
 }) {
+  try {
+    return await request<{
+      id: string;
+      consultation_id: string;
+      client_id: string | null;
+      lawyer_id: string;
+      status: string;
+    }>('/chat', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    // Fallback to direct Supabase for local/dev environments.
+  }
+
   const supabase = requireSupabase();
   const { data: existing, error: existingError } = await supabase
     .from('app_chat_sessions')
@@ -700,6 +715,12 @@ export async function getOrCreateChatSession(payload: {
 }
 
 export async function fetchChatMessages(chatSessionId: string) {
+  try {
+    return await request<AppMessageRow[]>(`/chat?sessionId=${encodeURIComponent(chatSessionId)}`);
+  } catch {
+    // Fallback to direct Supabase for local/dev environments.
+  }
+
   const supabase = requireSupabase();
   const { data, error } = await supabase
     .from('app_messages')
@@ -716,8 +737,24 @@ export async function sendChatMessage(payload: {
   content: string;
   type?: string;
 }) {
-  const supabase = requireSupabase();
   const user = getStoredUser();
+  try {
+    return await request<AppMessageRow>('/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'send-message',
+        chatSessionId: payload.chatSessionId,
+        senderId: user?.id || null,
+        senderRole: user?.role || 'client',
+        content: payload.content,
+        messageType: payload.type || 'text'
+      })
+    });
+  } catch {
+    // Fallback to direct Supabase for local/dev environments.
+  }
+
+  const supabase = requireSupabase();
   const { data, error } = await supabase
     .from('app_messages')
     .insert({

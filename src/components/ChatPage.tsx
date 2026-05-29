@@ -34,6 +34,7 @@ export const ChatPage = ({
   ]);
   const [inputText, setInputText] = useState('');
   const [chatSessionId, setChatSessionId] = useState('');
+  const [isDatabaseBacked, setIsDatabaseBacked] = useState(!consultationId);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [timeLeft, setTimeLeft] = useState(3600); // 60 minutes in seconds
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -80,9 +81,13 @@ export const ChatPage = ({
           setMessages(rows.map(mapMessage));
         }
       } catch (error) {
+        if (!mounted) return;
+        setIsDatabaseBacked(false);
         setModal({
           title: 'Chat Database Belum Siap',
-          description: error instanceof Error ? error.message : 'Pesan belum bisa dimuat dari database.'
+          description: error instanceof Error
+            ? `${error.message}. Chat tetap bisa dipakai sementara di layar ini, tetapi jalankan migration 010_ensure_chat_runtime.sql agar pesan tersimpan permanen.`
+            : 'Pesan belum bisa dimuat dari database. Jalankan migration 010_ensure_chat_runtime.sql agar chat tersimpan permanen.'
         });
       } finally {
         if (mounted) setIsLoadingMessages(false);
@@ -216,7 +221,7 @@ export const ChatPage = ({
                 Sesi Dimulai - {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
             </div>
               <p className="text-center text-[10px] font-medium text-brand-gray-400 max-w-sm uppercase tracking-widest">
-                {isLoadingMessages ? 'Memuat pesan tersimpan...' : 'Percakapan ini dienkripsi. Advokat tidak diperkenankan membagikan data pribadi Anda tanpa izin.'}
+                {isLoadingMessages ? 'Memuat pesan tersimpan...' : isDatabaseBacked ? 'Percakapan ini tersimpan di database konsultasi.' : 'Mode sementara: pesan tampil di layar ini sampai database chat siap.'}
             </p>
         </div>
 
