@@ -778,10 +778,27 @@ export async function submitReview(payload: {
   comment: string;
   tags: string[];
 }) {
-  const supabase = requireSupabase();
   const user = getStoredUser();
   if (!user?.id) throw new Error('User belum login.');
 
+  try {
+    await request('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({
+        consultationId: payload.consultationId,
+        clientId: user.id,
+        lawyerId: payload.lawyerId,
+        rating: payload.rating,
+        comment: payload.comment,
+        tags: payload.tags
+      })
+    });
+    return;
+  } catch {
+    // Fallback to direct Supabase for local/dev environments.
+  }
+
+  const supabase = requireSupabase();
   const { error } = await supabase
     .from('reviews')
     .upsert({
