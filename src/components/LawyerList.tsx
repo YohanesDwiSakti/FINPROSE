@@ -3,7 +3,7 @@ import {
   Search, Filter, Star, Clock, Globe, ShieldCheck, 
   ChevronRight, ArrowLeft, X, Check, SlidersHorizontal 
 } from 'lucide-react';
-import { LAWYERS, CATEGORIES, LANGUAGES } from '../constants';
+import { CATEGORIES, LANGUAGES } from '../constants';
 import { Lawyer } from '../types';
 import { fetchLawyers } from '../api';
 
@@ -18,7 +18,7 @@ export const LawyerList = ({ onBack, onSelectLawyer }: {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
   const [minExperience, setMinExperience] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
-  const [lawyers, setLawyers] = useState<Lawyer[]>(LAWYERS);
+  const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -26,7 +26,7 @@ export const LawyerList = ({ onBack, onSelectLawyer }: {
     let mounted = true;
     fetchLawyers()
       .then((items) => {
-        if (mounted && items.length > 0) {
+        if (mounted) {
           setLawyers(items);
         }
       })
@@ -184,7 +184,7 @@ export const LawyerList = ({ onBack, onSelectLawyer }: {
 
           {loadError && (
             <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-medium text-amber-700">
-              {loadError}. Menampilkan data contoh sementara.
+              {loadError}
             </div>
           )}
 

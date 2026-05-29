@@ -220,26 +220,11 @@ export const LawyerDetail = ({
         </div>
       </main>
 
-      {/* Recommended for you footer sticky */}
       <div className="max-w-5xl mx-auto px-6 py-24 border-t border-brand-gray-100">
         <h3 className="text-xl font-bold mb-12">Rekomendasi Lainnya</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="flex items-center space-x-4 p-4 border border-brand-gray-100 rounded-2xl hover:bg-brand-gray-50 transition-colors cursor-pointer group">
-                <img src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&q=80&w=100" className="w-12 h-12 rounded-xl object-cover filter grayscale group-hover:grayscale-0 transition-all" alt="" />
-                <div>
-                    <h4 className="font-bold text-sm">Hendra Pratama, S.H.</h4>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-gray-400">Hukum Properti</p>
-                </div>
-                <ArrowLeft className="w-4 h-4 rotate-180 ml-auto text-brand-gray-300" />
-            </div>
-            <div className="flex items-center space-x-4 p-4 border border-brand-gray-100 rounded-2xl hover:bg-brand-gray-50 transition-colors cursor-pointer group">
-                <img src="https://images.unsplash.com/photo-1598550874175-4d0ef436c909?auto=format&fit=crop&q=80&w=100" className="w-12 h-12 rounded-xl object-cover filter grayscale group-hover:grayscale-0 transition-all" alt="" />
-                <div>
-                    <h4 className="font-bold text-sm">Dewi Lestari, S.H.</h4>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-gray-400">Hukum Ketenagakerjaan</p>
-                </div>
-                <ArrowLeft className="w-4 h-4 rotate-180 ml-auto text-brand-gray-300" />
-            </div>
+        <div className="rounded-3xl border border-dashed border-brand-gray-200 bg-brand-gray-50 p-8 text-center">
+          <p className="text-sm font-bold text-brand-black">Rekomendasi akan tampil dari data advokat aktif.</p>
+          <p className="mt-2 text-xs font-medium text-brand-gray-500">Buka direktori untuk melihat advokat yang tersedia saat ini.</p>
         </div>
       </div>
     </div>

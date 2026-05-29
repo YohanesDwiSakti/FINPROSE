@@ -8,7 +8,7 @@ import { Lawyer } from '../types';
 import { ActionModal } from './ActionModal';
 import { fetchCallSignals, getStoredUser, sendCallSignal, type CallSignalRow } from '../api';
 
-type CallState = 'idle' | 'starting' | 'waiting' | 'connected' | 'ended' | 'error' | 'demo';
+type CallState = 'idle' | 'starting' | 'waiting' | 'connected' | 'ended' | 'error' | 'unavailable';
 
 export const MeetingPage = ({
   lawyer,
@@ -136,8 +136,8 @@ export const MeetingPage = ({
 
     const startWebRtc = async () => {
       if (!consultationId) {
-        setCallState('demo');
-        setCallMessage('Mode demo: buka konsultasi dari chat aktif agar panggilan realtime berjalan.');
+        setCallState('unavailable');
+        setCallMessage('Buka panggilan dari chat konsultasi aktif agar realtime berjalan.');
         return;
       }
 

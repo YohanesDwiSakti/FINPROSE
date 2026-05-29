@@ -28,7 +28,7 @@ export const RegisterPage = ({
   const openUploadInfo = (title: string) => {
     setModal({
       title,
-      description: `${title} akan membuka pemilih file dan menyimpan dokumen ke antrean verifikasi advokat. Untuk demo ini dokumen belum diunggah permanen.`
+      description: `${title} akan membuka pemilih file dan menyimpan dokumen ke antrean verifikasi advokat.`
     });
   };
 

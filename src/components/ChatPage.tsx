@@ -23,15 +23,7 @@ export const ChatPage = ({
   onStartCall?: (type: 'video' | 'voice') => void,
   currentUserRole?: 'client' | 'lawyer'
 }) => {
-  const [messages, setMessages] = useState<Message[]>(consultationId ? [] : [
-    {
-      id: '1',
-      senderId: lawyer.id,
-      content: `Selamat siang. Saya ${lawyer.name}. Saya telah membaca catatan masalah hukum Anda terkait sengketa tanah. Bisa Anda kirimkan foto sertifikat atau dokumen pendukung lainnya?`,
-      timestamp: new Date(Date.now() - 1000 * 60 * 5),
-      type: MessageType.TEXT
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [chatSessionId, setChatSessionId] = useState('');
   const [isDatabaseBacked, setIsDatabaseBacked] = useState(!consultationId);

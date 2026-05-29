@@ -6,10 +6,10 @@ import {
   MessageSquare, Star, Heart, Clock, CheckCircle2, 
   ShieldCheck, Filter, LogOut
 } from 'lucide-react';
-import { RECENT_MESSAGES, ACTIVE_CONSULTATIONS, LAWYERS } from '../constants';
 import { motion, AnimatePresence } from 'motion/react';
 import { ActionModal } from './ActionModal';
 import { fetchClientConsultations, getStoredUser, type ConsultationRow, type StoredUser } from '../api';
+import { Message } from '../types';
 
 const getFirstName = (name: string) => name.trim().split(/\s+/)[0] || 'Klien';
 
@@ -74,11 +74,7 @@ const consultationTime = (row: ConsultationRow) => row.scheduled_time || '-';
 const isHistoryStatus = (status: string) => status === 'completed' || status === 'cancelled';
 
 const NotificationPanel = ({ isOpen, onClose, onViewAll }: { isOpen: boolean, onClose: () => void, onViewAll: () => void }) => {
-  const notifications = [
-    { id: 1, title: 'Konsultasi Siap', desc: 'Sesi baru bisa langsung dibuka tanpa pembayaran sementara.', time: '2m ago', icon: CheckCircle2, color: 'text-green-500' },
-    { id: 2, title: 'Dokumen Baru', desc: 'Lawyer mengunggah Legal Opinion baru.', time: '1h ago', icon: FileText, color: 'text-brand-black' },
-    { id: 3, title: 'Jadwal Mendatang', desc: 'Konsultasi dimulai dalam 30 menit.', time: '2h ago', icon: Clock, color: 'text-amber-500' },
-  ];
+  const notifications: Array<{ id: number; title: string; desc: string; time: string; icon: typeof CheckCircle2; color: string }> = [];
 
   return (
     <AnimatePresence>
@@ -99,7 +95,7 @@ const NotificationPanel = ({ isOpen, onClose, onViewAll }: { isOpen: boolean, on
           >
             <div className="p-6 border-b border-brand-gray-50 flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-widest text-brand-black">Notifikasi</h3>
-              <span className="text-[10px] font-bold text-brand-gray-300 uppercase tracking-widest">3 Baru</span>
+              <span className="text-[10px] font-bold text-brand-gray-300 uppercase tracking-widest">0 Baru</span>
             </div>
             <div className="max-h-[400px] overflow-y-auto divide-y divide-brand-gray-50">
               {notifications.map(n => (
@@ -114,6 +110,11 @@ const NotificationPanel = ({ isOpen, onClose, onViewAll }: { isOpen: boolean, on
                   </div>
                 </div>
               ))}
+              {notifications.length === 0 && (
+                <div className="p-6 text-center text-xs font-bold uppercase tracking-widest text-brand-gray-300">
+                  Belum ada notifikasi
+                </div>
+              )}
             </div>
             <button onClick={onViewAll} className="w-full p-4 text-[10px] font-bold uppercase tracking-widest text-brand-gray-400 hover:text-brand-black bg-brand-gray-50 transition-colors">
               Lihat Semua Notifikasi
@@ -280,7 +281,7 @@ export const ClientDashboard = ({
   const activeConsultations = useMemo(() => consultations.filter(item => !isHistoryStatus(item.status)), [consultations]);
   const historyConsultations = useMemo(() => consultations.filter(item => isHistoryStatus(item.status)), [consultations]);
   const nextConsultation = activeConsultations[0] || null;
-  const completedCount = historyConsultations.length || ACTIVE_CONSULTATIONS.filter(item => item.status === 'Completed').length;
+  const completedCount = historyConsultations.length;
   const pendingSessionCount = consultations.filter(item => item.status === 'pending').length;
   const paidPaymentTotal = consultations
     .flatMap(item => item.app_payments || [])
@@ -289,16 +290,8 @@ export const ClientDashboard = ({
   const nextStatus = nextConsultation ? statusCopy[nextConsultation.status] || statusCopy.pending : null;
   const recentRows = consultations.length > 0
     ? activeConsultations.slice(0, 4)
-    : user.id === 'guest-client' ? ACTIVE_CONSULTATIONS.map(item => ({
-        id: item.id,
-        lawyer_directory: { name: item.lawyerName, specialty: item.specialty, image: '' },
-        scheduled_day: item.date,
-        scheduled_time: item.time,
-        status: item.status === 'Completed' ? 'completed' : item.status === 'Ongoing' ? 'ongoing' : 'in_review',
-        price: item.price,
-        created_at: new Date().toISOString()
-      } as ConsultationRow)).filter(item => !isHistoryStatus(item.status)) : [];
-  const recentMessages = user.id === 'guest-client' ? RECENT_MESSAGES : [];
+    : [];
+  const recentMessages: Message[] = [];
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -339,7 +332,7 @@ export const ClientDashboard = ({
             <section className="grid grid-cols-1 gap-4 rounded-3xl border border-brand-gray-100 bg-brand-gray-50 p-5 md:grid-cols-3">
               {[
                 { icon: Search, title: '1. Pilih advokat', detail: 'Bandingkan spesialis, harga, rating, dan jadwal.', action: 'Cari Advokat', onClick: onBrowseLawyers },
-                { icon: CreditCard, title: '2. Mulai sesi', detail: pendingSessionCount > 0 ? `${pendingSessionCount} konsultasi siap dibuka.` : 'Pembayaran diskip sementara untuk testing.', action: 'Buka Sesi', onClick: onViewHistory },
+                { icon: CreditCard, title: '2. Mulai sesi', detail: pendingSessionCount > 0 ? `${pendingSessionCount} konsultasi siap dibuka.` : 'Belum ada sesi aktif.', action: 'Buka Sesi', onClick: onViewHistory },
                 { icon: MessageSquare, title: '3. Konsultasi', detail: 'Chat, meeting, dokumen, dan review ada di riwayat kasus.', action: 'Buka Kasus', onClick: onViewHistory }
               ].map(item => (
                 <button
@@ -416,30 +409,20 @@ export const ClientDashboard = ({
               </div>
             </div>
 
-            {/* Favorite Lawyers */}
             <section className="space-y-6">
               <div className="flex items-center justify-between px-2">
-                <h2 className="text-2xl font-bold font-display">Lawyer Favorit</h2>
-                <button 
+                <h2 className="text-2xl font-bold font-display">Advokat Tersimpan</h2>
+                <button
                   onClick={onBrowseLawyers}
                   className="text-[10px] font-bold uppercase tracking-widest text-brand-gray-400 hover:text-brand-black transition-colors"
                 >
-                  Lihat Semua
+                  Cari Advokat
                 </button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {LAWYERS.slice(0, 2).map((lawyer) => (
-                  <div key={lawyer.id} className="p-5 bg-white border border-brand-gray-100 rounded-3xl flex items-center space-x-4 hover:border-brand-black transition-all group shadow-sm">
-                    <img src={lawyer.image} className="w-14 h-14 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all" />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm truncate">{lawyer.name}</h4>
-                      <p className="text-[9px] font-bold text-brand-gray-400 uppercase tracking-widest">{lawyer.specialty}</p>
-                    </div>
-                    <button onClick={() => setModal({ title: `${lawyer.name} Disimpan`, description: 'Advokat ini sudah masuk daftar favorit. Dari sini pengguna bisa lanjut melihat profil, tarif, dan jadwal konsultasi.' })} className="p-2 text-red-500 bg-red-50 rounded-xl">
-                      <Heart className="w-4 h-4 fill-current" />
-                    </button>
-                  </div>
-                ))}
+              <div className="rounded-3xl border border-dashed border-brand-gray-200 bg-brand-gray-50 p-8 text-center">
+                <Heart className="mx-auto mb-3 h-6 w-6 text-brand-gray-300" />
+                <p className="text-sm font-bold">Belum ada advokat tersimpan</p>
+                <p className="mt-2 text-xs font-medium text-brand-gray-500">Advokat akan muncul setelah Anda menyimpannya dari direktori.</p>
               </div>
             </section>
           </div>
@@ -493,7 +476,7 @@ export const ClientDashboard = ({
           <section className="lg:col-span-4 space-y-8">
             <div className="flex items-center justify-between px-2">
               <h2 className="text-2xl font-bold font-display">Chat Terbaru</h2>
-              <button onClick={() => setModal({ title: 'Filter Chat', description: 'Panel filter chat akan menampilkan pesan belum dibaca, dokumen masuk, dan percakapan aktif. Untuk demo ini daftar chat sudah diringkas dari aktivitas terbaru.' })} className="p-2 border border-brand-gray-100 rounded-xl hover:bg-brand-gray-50 transition-colors">
+              <button onClick={() => setModal({ title: 'Filter Chat', description: 'Panel filter chat akan menampilkan pesan belum dibaca, dokumen masuk, dan percakapan aktif.' })} className="p-2 border border-brand-gray-100 rounded-xl hover:bg-brand-gray-50 transition-colors">
                 <Filter className="w-4 h-4 text-brand-gray-400" />
               </button>
             </div>

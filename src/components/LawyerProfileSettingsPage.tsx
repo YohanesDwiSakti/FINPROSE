@@ -66,7 +66,7 @@ export const LawyerProfileSettingsPage = ({ onBack }: { onBack: () => void }) =>
 
   const saveProfile = () => {
     localStorage.setItem('finprose_user', JSON.stringify({
-      id: user?.id || 'local-lawyer',
+      id: user?.id || '',
       role: user?.role || 'lawyer',
       status: user?.status || 'active',
       name,

@@ -5,7 +5,6 @@ import {
   Search, Calendar, MessageSquare, StickyNote
 } from 'lucide-react';
 import { Consultation } from '../types';
-import { ACTIVE_CONSULTATIONS } from '../constants';
 import { ActionModal } from './ActionModal';
 import { fetchClientConsultations, getStoredUser, type ConsultationRow } from '../api';
 
@@ -60,11 +59,7 @@ export const CaseHistoryPage = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCase, setSelectedCase] = useState<CaseView | null>(null);
-  const [cases, setCases] = useState<CaseView[]>(ACTIVE_CONSULTATIONS.filter(item => item.status === 'Completed').map(item => ({
-    ...item,
-    consultationId: item.id,
-    consultationType: 'chat'
-  })));
+  const [cases, setCases] = useState<CaseView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [modal, setModal] = useState<{ title: string; description: string } | null>(null);
@@ -155,7 +150,7 @@ export const CaseHistoryPage = ({
 
           {loadError && (
             <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-xs font-bold text-amber-700">
-              {loadError}. Menampilkan data contoh sementara.
+              {loadError}
             </div>
           )}
 

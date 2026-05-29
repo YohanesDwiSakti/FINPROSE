@@ -365,7 +365,7 @@ export const DocumentVaultPage = ({ onBack }: { onBack: () => void }) => {
                     <button onClick={() => setModal({ title: `Download ${doc.name}`, description: 'File ini hanya diunduh dari folder kasus yang sedang dibuka.' })} className="p-3 hover:bg-brand-black hover:text-white rounded-xl transition-all text-brand-gray-400 group-hover:text-brand-black group-hover:hover:text-white" title="Download">
                       <Download className="w-4 h-4" />
                     </button>
-                    <button onClick={() => setModal({ title: `Hapus ${doc.name}`, description: 'Aksi hapus akan meminta konfirmasi ulang dan membuat audit log. Untuk demo, dokumen belum dihapus permanen.' })} className="p-3 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all text-brand-gray-400" title="Delete">
+                    <button onClick={() => setModal({ title: `Hapus ${doc.name}`, description: 'Aksi hapus akan meminta konfirmasi ulang dan membuat audit log.' })} className="p-3 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all text-brand-gray-400" title="Delete">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

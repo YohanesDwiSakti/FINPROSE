@@ -22,19 +22,6 @@ const getInitials = (name: string) => {
   return initials || 'AD';
 };
 
-// Mock Data
-const CLIENTS = [
-  { id: 'CL-1', name: 'Elena Rodriguez', case: 'Sengketa Tanah', status: 'Active', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop' },
-  { id: 'CL-2', name: 'Budi Santoso', case: 'Perceraian', status: 'In Review', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop' },
-  { id: 'CL-3', name: 'Dewi Lestari', case: 'Hukum Waris', status: 'Pending', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop' },
-];
-
-const SCHEDULE = [
-  { id: 'SC-1', time: '09:00 - 10:00', client: 'Elena Rodriguez', subject: 'Review Dokumen Sengketa', type: 'Video Call' },
-  { id: 'SC-2', time: '13:00 - 14:00', client: 'Budi Santoso', subject: 'Konsultasi Lanjutan', type: 'Voice Call' },
-  { id: 'SC-3', time: '16:00 - 17:00', client: 'Dewi Lestari', subject: 'Drafting Surat Kuasa', type: 'Video Call' },
-];
-
 const workStatusCopy: Record<string, { label: string; next: string; tone: string }> = {
   pending: {
     label: 'Perlu keputusan',
@@ -161,7 +148,7 @@ export const LawyerDashboard = ({
   const [loadError, setLoadError] = useState('');
   const openAction = (title: string, description: string) => setModal({ title, description });
   const user = getStoredUser() || {
-    id: 'local-lawyer',
+    id: '',
     name: 'Advokat FINPROSE',
     email: 'advokat@example.com',
     role: 'lawyer' as const,
@@ -169,7 +156,7 @@ export const LawyerDashboard = ({
   };
 
   useEffect(() => {
-    if (!user.id || user.id === 'local-lawyer') return;
+    if (!user.id) return;
 
     let mounted = true;
     fetchLawyerConsultations(user.id)
@@ -196,12 +183,12 @@ export const LawyerDashboard = ({
       revenue: grossRevenue,
       activeCount,
       pendingCount,
-      scheduleCount: activeScheduleCount || (user.id === 'local-lawyer' ? SCHEDULE.length : 0)
+      scheduleCount: activeScheduleCount
     };
-  }, [consultations, user.id]);
+  }, [consultations]);
 
   const scheduleRows = useMemo(() => {
-    if (consultations.length === 0) return user.id === 'local-lawyer' ? SCHEDULE : [];
+    if (consultations.length === 0) return [];
 
     return consultations.filter(item => !isHistoryStatus(item.status)).slice(0, 5).map(item => ({
       id: item.id,
@@ -211,7 +198,7 @@ export const LawyerDashboard = ({
       type: item.consultation_type === 'phone' ? 'Voice Call' : item.consultation_type === 'video' ? 'Video Call' : 'Chat',
       status: item.status
     }));
-  }, [consultations, user.id]);
+  }, [consultations]);
 
   const priorityRows = useMemo(() => {
     const orderedStatus = ['pending', 'paid', 'ongoing', 'in_review', 'completed', 'cancelled'];
@@ -226,7 +213,6 @@ export const LawyerDashboard = ({
   }))), [consultations]);
 
   const clientRows = useMemo(() => {
-    if (consultations.length === 0 && user.id === 'local-lawyer') return CLIENTS;
     const seen = new Set<string>();
     return consultations
       .filter(item => item.client_id && !seen.has(item.client_id) && !isHistoryStatus(item.status))
@@ -241,10 +227,10 @@ export const LawyerDashboard = ({
           consultation: item
         };
       });
-  }, [consultations, user.id]);
+  }, [consultations]);
 
   const refreshLawyerData = async () => {
-    if (!user.id || user.id === 'local-lawyer') return;
+    if (!user.id) return;
     const rows = await fetchLawyerConsultations(user.id);
     setConsultations(rows);
   };

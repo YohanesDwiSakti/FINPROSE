@@ -74,7 +74,7 @@ export const LoginPage = ({
             <div className="px-2 py-1 bg-brand-gray-200 text-[10px] font-bold rounded">EA</div>
           </div>
           <div className="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest">
-            Trusted By 500+ Legal Firms
+            Platform Konsultasi Hukum Digital
           </div>
           <div className="text-[10px] text-brand-gray-400">
             © 2024 RAW LAW. EDITORIAL AUTHORITY IN LEGAL-TECH.

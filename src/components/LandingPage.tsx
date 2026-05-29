@@ -2,10 +2,11 @@ import { motion } from 'motion/react';
 import { 
   Search, Gavel, Scale, Briefcase, Users, ArrowUpRight, MessageSquare, 
   ShieldCheck, Star, Heart, FileText, Landmark, UserPlus, PhoneIncoming,
-  CheckCircle2, Plus, Minus, Quote
+  CheckCircle2, Plus, Minus
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { LAWYERS } from '../constants';
+import { Lawyer } from '../types';
+import { fetchLawyers } from '../api';
 
 const Navbar = ({ onAuthClick }: { onAuthClick: () => void }) => {
   const [active, setActive] = useState('HOME');
@@ -91,11 +92,11 @@ const Navbar = ({ onAuthClick }: { onAuthClick: () => void }) => {
   );
 };
 
-const Hero = ({ onBrowse, onSelectLawyer }: { onBrowse: () => void, onSelectLawyer: (lawyer: any) => void }) => {
+const Hero = ({ lawyers, onBrowse, onSelectLawyer }: { lawyers: Lawyer[], onBrowse: () => void, onSelectLawyer: (lawyer: Lawyer) => void }) => {
   const [term, setTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const filteredLawyers = term ? LAWYERS.filter(l => 
+  const filteredLawyers = term ? lawyers.filter(l =>
     l.name.toLowerCase().includes(term.toLowerCase()) || 
     l.specialty.toLowerCase().includes(term.toLowerCase())
   ) : [];
@@ -158,17 +159,9 @@ const Hero = ({ onBrowse, onSelectLawyer }: { onBrowse: () => void, onSelectLawy
             )}
           </div>
 
-          <div className="flex items-center space-x-6 text-brand-gray-400">
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-brand-black">500+</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest">Pengacara</span>
-            </div>
-            <div className="w-px h-8 bg-brand-gray-200"></div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-brand-black">15k+</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest">Klien Puas</span>
-            </div>
-          </div>
+          <button onClick={onBrowse} className="text-sm font-bold underline underline-offset-4 uppercase tracking-widest">
+            Lihat Advokat Tersedia
+          </button>
         </motion.div>
         
         <motion.div
@@ -338,38 +331,7 @@ const FAQSection = () => {
   );
 };
 
-const Testimonials = () => {
-  const reviews = [
-    { name: "Andi Saputra", role: "Wirausaha", text: "Raw Law sangat membantu saat kontrak bisnis saya bermasalah. Respon pengacara sangat cepat dan solutif." },
-    { name: "Maya Indah", role: "Karyawan Swasta", text: "Proses konsultasi waris jadi jauh lebih murah dan praktis dibandingkan harus datang langsung ke kantor hukum." },
-    { name: "Robert Wilson", role: "Investor", text: "The best legal platform in the region. Verified lawyers and seamless payment integration." }
-  ];
-
-  return (
-    <section className="py-24 px-8 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto w-full">
-        <h2 className="text-4xl font-bold font-display text-center mb-16">Apa Kata Mereka?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {reviews.map((rev, i) => (
-            <div key={i} className="p-10 bg-brand-gray-50 rounded-[40px] relative">
-              <Quote className="absolute top-6 right-6 w-12 h-12 text-brand-gray-100" />
-              <div className="flex items-center space-x-1 mb-6">
-                {[...Array(5)].map((_, j) => <Star key={j} className="w-3 h-3 fill-brand-black text-brand-black" />)}
-              </div>
-              <p className="text-brand-gray-600 font-medium italic mb-8 relative z-10">"{rev.text}"</p>
-              <div>
-                <h4 className="font-bold">{rev.name}</h4>
-                <p className="text-[10px] uppercase font-bold tracking-widest text-brand-gray-400">{rev.role}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const RecommendedLawyers = ({ onBrowse }: { onBrowse: () => void }) => {
+const RecommendedLawyers = ({ lawyers, onBrowse }: { lawyers: Lawyer[], onBrowse: () => void }) => {
   return (
     <section id="advokat" className="bg-brand-black text-white py-24 px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto w-full">
@@ -382,7 +344,7 @@ const RecommendedLawyers = ({ onBrowse }: { onBrowse: () => void }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {LAWYERS.map((lawyer, i) => (
+          {lawyers.slice(0, 3).map((lawyer, i) => (
             <motion.div
               key={lawyer.id}
               initial={{ opacity: 0, y: 30 }}
@@ -426,6 +388,11 @@ const RecommendedLawyers = ({ onBrowse }: { onBrowse: () => void }) => {
               </button>
             </motion.div>
           ))}
+          {lawyers.length === 0 && (
+            <div className="col-span-full rounded-3xl border border-white/10 bg-zinc-900/50 p-10 text-center">
+              <p className="text-sm font-bold uppercase tracking-widest text-zinc-400">Belum ada advokat aktif</p>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -521,14 +488,29 @@ export const LandingPage = ({ onEnterApp, onBrowseLawyers, onSelectLawyer }: {
   onBrowseLawyers: () => void,
   onSelectLawyer: (lawyer: any) => void
 }) => {
+  const [lawyers, setLawyers] = useState<Lawyer[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchLawyers()
+      .then(items => {
+        if (mounted) setLawyers(items);
+      })
+      .catch(() => {
+        if (mounted) setLawyers([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen selection:bg-brand-black selection:text-white scroll-smooth">
       <Navbar onAuthClick={onEnterApp} />
-      <Hero onBrowse={onBrowseLawyers} onSelectLawyer={onSelectLawyer} />
+      <Hero lawyers={lawyers} onBrowse={onBrowseLawyers} onSelectLawyer={onSelectLawyer} />
       <HowItWorks />
       <LegalCategories onBrowse={onBrowseLawyers} />
-      <RecommendedLawyers onBrowse={onBrowseLawyers} />
-      <Testimonials />
+      <RecommendedLawyers lawyers={lawyers} onBrowse={onBrowseLawyers} />
       <FAQSection />
       <CTASection onBrowse={onBrowseLawyers} onStart={onEnterApp} />
       <Footer />
