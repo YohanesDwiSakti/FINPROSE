@@ -39,6 +39,7 @@ export const ChatPage = ({
   const [timeLeft, setTimeLeft] = useState(3600); // 60 minutes in seconds
   const scrollRef = useRef<HTMLDivElement>(null);
   const [modal, setModal] = useState<{ title: string; description: string } | null>(null);
+  const fallbackStorageKey = consultationId ? `finprose_chat_fallback_${consultationId}` : '';
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -83,12 +84,15 @@ export const ChatPage = ({
       } catch (error) {
         if (!mounted) return;
         setIsDatabaseBacked(false);
-        setModal({
-          title: 'Chat Database Belum Siap',
-          description: error instanceof Error
-            ? `${error.message}. Chat tetap bisa dipakai sementara di layar ini, tetapi jalankan migration 010_ensure_chat_runtime.sql agar pesan tersimpan permanen.`
-            : 'Pesan belum bisa dimuat dari database. Jalankan migration 010_ensure_chat_runtime.sql agar chat tersimpan permanen.'
-        });
+        const savedFallback = fallbackStorageKey ? localStorage.getItem(fallbackStorageKey) : '';
+        if (savedFallback) {
+          try {
+            const parsed = JSON.parse(savedFallback) as Array<Message & { timestamp: string }>;
+            setMessages(parsed.map(item => ({ ...item, timestamp: new Date(item.timestamp) })));
+          } catch {
+            setMessages([]);
+          }
+        }
       } finally {
         if (mounted) setIsLoadingMessages(false);
       }
@@ -101,7 +105,7 @@ export const ChatPage = ({
       mounted = false;
       window.clearInterval(poll);
     };
-  }, [consultationId, clientId, lawyer.id]);
+  }, [consultationId, clientId, lawyer.id, fallbackStorageKey]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -127,7 +131,8 @@ export const ChatPage = ({
       type: MessageType.TEXT
     };
 
-    setMessages([...messages, newMessage]);
+    const nextMessages = [...messages, newMessage];
+    setMessages(nextMessages);
     setInputText('');
 
     if (chatSessionId) {
@@ -135,8 +140,11 @@ export const ChatPage = ({
         const saved = await sendChatMessage({ chatSessionId, content });
         setMessages(prev => prev.map(item => item.id === newMessage.id ? mapMessage(saved) : item));
       } catch (error) {
-        setModal({ title: 'Pesan Belum Tersimpan', description: error instanceof Error ? error.message : 'Pesan hanya tersimpan sementara di layar.' });
+        setIsDatabaseBacked(false);
+        if (fallbackStorageKey) localStorage.setItem(fallbackStorageKey, JSON.stringify(nextMessages));
       }
+    } else if (fallbackStorageKey) {
+      localStorage.setItem(fallbackStorageKey, JSON.stringify(nextMessages));
     }
   };
 
