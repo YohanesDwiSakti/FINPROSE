@@ -8,6 +8,19 @@ function bearerToken(req) {
 }
 
 async function resolveLawyerId(req, requestedLawyerId) {
+  if (requestedLawyerId) {
+    const directoryRows = await supabaseRest(
+      'GET',
+      `lawyer_directory?id=eq.${encodeURIComponent(requestedLawyerId)}&verification_status=eq.verified&select=id&limit=1`
+    ).catch(() => []);
+    const profileRows = await supabaseRest(
+      'GET',
+      `profiles?id=eq.${encodeURIComponent(requestedLawyerId)}&role=eq.lawyer&status=eq.active&select=id&limit=1`
+    ).catch(() => []);
+
+    if (directoryRows?.[0] || profileRows?.[0]) return requestedLawyerId;
+  }
+
   const token = bearerToken(req);
   const url = supabaseUrl();
   const serviceKey = supabaseServiceKey();
