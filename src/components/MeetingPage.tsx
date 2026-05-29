@@ -50,6 +50,7 @@ export const MeetingPage = ({
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
+  const onEndCallRef = useRef(onEndCall);
   const processedSignalsRef = useRef<Set<string>>(new Set());
   const queuedCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const hasCreatedOfferRef = useRef(false);
@@ -60,6 +61,10 @@ export const MeetingPage = ({
       ? crypto.randomUUID()
       : `peer-${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
+
+  useEffect(() => {
+    onEndCallRef.current = onEndCall;
+  }, [onEndCall]);
 
   useEffect(() => {
     const localStream = localStreamRef.current;
@@ -143,6 +148,7 @@ export const MeetingPage = ({
       if (signal.signal_type === 'leave') {
         setCallState('ended');
         setCallMessage('Lawan bicara keluar dari panggilan.');
+        window.setTimeout(() => onEndCallRef.current(), 250);
       }
     };
 

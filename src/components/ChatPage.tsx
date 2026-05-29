@@ -167,6 +167,24 @@ export const ChatPage = ({
     onStartCall?.(mode);
   };
 
+  const rejectIncomingCall = async () => {
+    const user = getStoredUser();
+    setIncomingCall(null);
+
+    if (consultationId && user?.id) {
+      await sendCallSignal({
+        consultationId,
+        senderId: user.id,
+        senderRole: currentUserRole,
+        signalType: 'leave',
+        payload: {
+          reason: 'rejected',
+          peerId: callPeerIdRef.current
+        }
+      }).catch(() => null);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
     const content = inputText;
@@ -224,7 +242,7 @@ export const ChatPage = ({
             </p>
             <div className="mt-8 grid grid-cols-2 gap-3">
               <button
-                onClick={() => setIncomingCall(null)}
+                onClick={rejectIncomingCall}
                 className="rounded-2xl border border-brand-gray-100 bg-white py-4 text-[10px] font-bold uppercase tracking-widest text-brand-gray-500"
               >
                 Tolak
