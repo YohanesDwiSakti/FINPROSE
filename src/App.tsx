@@ -206,6 +206,9 @@ export default function App() {
           lawyer={selectedLawyer}
           consultationId={bookingData?.consultationId || bookingData?.id}
           clientId={bookingData?.clientId}
+          remoteParticipantName={remoteMeetingName}
+          remoteParticipantSubtitle={remoteMeetingSubtitle}
+          remoteParticipantImage={remoteMeetingImage}
           onBack={leaveConsultationView}
           currentUserRole={activeConsultationRole}
           onStartCall={(mode) => {

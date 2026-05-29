@@ -12,6 +12,9 @@ export const ChatPage = ({
   lawyer, 
   consultationId,
   clientId,
+  remoteParticipantName,
+  remoteParticipantSubtitle,
+  remoteParticipantImage,
   onBack,
   onStartCall,
   currentUserRole = 'client'
@@ -19,10 +22,16 @@ export const ChatPage = ({
   lawyer: Lawyer, 
   consultationId?: string,
   clientId?: string,
+  remoteParticipantName?: string,
+  remoteParticipantSubtitle?: string,
+  remoteParticipantImage?: string,
   onBack: () => void,
   onStartCall?: (type: 'video' | 'voice') => void,
   currentUserRole?: 'client' | 'lawyer'
 }) => {
+  const remoteName = remoteParticipantName || lawyer.name;
+  const remoteSubtitle = remoteParticipantSubtitle || 'Active Consultation';
+  const remoteImage = remoteParticipantImage || (currentUserRole === 'lawyer' ? '' : lawyer.image);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [chatSessionId, setChatSessionId] = useState('');
@@ -164,15 +173,21 @@ export const ChatPage = ({
           </button>
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <img src={lawyer.image} alt={lawyer.name} className="w-10 h-10 rounded-full object-cover grayscale-[0.2]" />
+              {remoteImage ? (
+                <img src={remoteImage} alt={remoteName} className="w-10 h-10 rounded-full object-cover grayscale-[0.2]" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-brand-black text-white flex items-center justify-center text-sm font-bold">
+                  {remoteName[0] || 'K'}
+                </div>
+              )}
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
             <div>
               <h3 className="text-sm font-bold flex items-center space-x-1">
-                <span>{lawyer.name}</span>
+                <span>{remoteName}</span>
                 <ShieldCheck className="w-3 h-3 text-brand-black" />
               </h3>
-              <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">Active Consultation</p>
+              <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">{remoteSubtitle}</p>
             </div>
           </div>
         </div>
