@@ -18,7 +18,6 @@ import { ChatPage } from './components/ChatPage';
 import { MeetingPage } from './components/MeetingPage';
 import { CaseHistoryPage } from './components/CaseHistoryPage';
 import { DocumentVaultPage } from './components/DocumentVaultPage';
-import { PaymentPage } from './components/PaymentPage';
 import { ReviewPage } from './components/ReviewPage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { HelpPage } from './components/HelpPage';
@@ -28,7 +27,7 @@ import { Lawyer, ConsultationType } from './types';
 import { getStoredUser, type ConsultationRow } from './api';
 import { restoreSupabaseSession, signOutSupabase } from './supabaseAuth';
 
-type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'otp' | 'lawyer-dash' | 'client-dash' | 'admin-dash' | 'lawyer-list' | 'lawyer-detail' | 'booking' | 'chat' | 'meeting' | 'case-history' | 'document-vault' | 'payment' | 'review' | 'help' | 'profile-settings' | 'lawyer-profile-settings';
+type ViewState = 'landing' | 'login' | 'register' | 'forgot-password' | 'otp' | 'lawyer-dash' | 'client-dash' | 'admin-dash' | 'lawyer-list' | 'lawyer-detail' | 'booking' | 'chat' | 'meeting' | 'case-history' | 'document-vault' | 'review' | 'help' | 'profile-settings' | 'lawyer-profile-settings';
 
 const dashboardViewForRole = (role?: 'client' | 'lawyer' | 'admin'): ViewState => {
   if (role === 'lawyer') return 'lawyer-dash';
@@ -119,7 +118,8 @@ export default function App() {
   const handleConfirmBooking = (data: any) => {
     console.log('Booking Confirmed:', data);
     setBookingData(data);
-    setView('payment');
+    setMeetingMode(data?.type === ConsultationType.PHONE ? 'voice' : 'video');
+    setView(viewForConsultationType(data?.type));
   };
 
   return (
@@ -267,11 +267,6 @@ export default function App() {
               time: row.scheduled_time || undefined
             });
 
-            if (row.status === 'pending') {
-              setView('payment');
-              return;
-            }
-
             setMeetingMode(row.consultation_type === ConsultationType.PHONE ? 'voice' : 'video');
             setView(viewForConsultationType(row.consultation_type));
           }}
@@ -293,23 +288,6 @@ export default function App() {
       )}
       {view === 'document-vault' && (
         <DocumentVaultPage onBack={() => setView('client-dash')} />
-      )}
-      {view === 'payment' && selectedLawyer && (
-        <PaymentPage 
-          bookingData={bookingData}
-          onBack={() => setView('booking')}
-          onSuccess={() => {
-            if (bookingData?.type === ConsultationType.VIDEO) {
-              setMeetingMode('video');
-              setView('meeting');
-            } else if (bookingData?.type === ConsultationType.PHONE) {
-              setMeetingMode('voice');
-              setView('meeting');
-            } else {
-              setView('chat');
-            }
-          }}
-        />
       )}
       {view === 'review' && selectedLawyer && (
         <ReviewPage 

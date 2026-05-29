@@ -475,7 +475,7 @@ export async function createConsultation(payload: {
       scheduled_time: payload.time,
       notes: payload.notes,
       price: payload.price,
-      status: 'pending'
+      status: 'paid'
     })
     .select('id, client_id, lawyer_id, consultation_type, scheduled_day, scheduled_time, notes, price, status')
     .single();

@@ -27,8 +27,8 @@ const getInitials = (name: string) => {
 
 const statusCopy: Record<string, { label: string; action: string; tone: string }> = {
   pending: {
-    label: 'Menunggu pembayaran',
-    action: 'Selesaikan pembayaran agar advokat bisa memulai sesi.',
+    label: 'Siap dimulai',
+    action: 'Pembayaran sedang diskip sementara. Masuk ke sesi konsultasi.',
     tone: 'bg-amber-50 text-amber-700'
   },
   paid: {
@@ -75,7 +75,7 @@ const isHistoryStatus = (status: string) => status === 'completed' || status ===
 
 const NotificationPanel = ({ isOpen, onClose, onViewAll }: { isOpen: boolean, onClose: () => void, onViewAll: () => void }) => {
   const notifications = [
-    { id: 1, title: 'Pembayaran Dikonfirmasi', desc: 'Sesi dengan Budi Santoso telah dibayar.', time: '2m ago', icon: CheckCircle2, color: 'text-green-500' },
+    { id: 1, title: 'Konsultasi Siap', desc: 'Sesi baru bisa langsung dibuka tanpa pembayaran sementara.', time: '2m ago', icon: CheckCircle2, color: 'text-green-500' },
     { id: 2, title: 'Dokumen Baru', desc: 'Lawyer mengunggah Legal Opinion baru.', time: '1h ago', icon: FileText, color: 'text-brand-black' },
     { id: 3, title: 'Jadwal Mendatang', desc: 'Konsultasi dimulai dalam 30 menit.', time: '2h ago', icon: Clock, color: 'text-amber-500' },
   ];
@@ -281,7 +281,7 @@ export const ClientDashboard = ({
   const historyConsultations = useMemo(() => consultations.filter(item => isHistoryStatus(item.status)), [consultations]);
   const nextConsultation = activeConsultations[0] || null;
   const completedCount = historyConsultations.length || ACTIVE_CONSULTATIONS.filter(item => item.status === 'Completed').length;
-  const pendingPaymentCount = consultations.filter(item => item.status === 'pending').length;
+  const pendingSessionCount = consultations.filter(item => item.status === 'pending').length;
   const paidPaymentTotal = consultations
     .flatMap(item => item.app_payments || [])
     .filter(payment => payment.status === 'paid')
@@ -339,7 +339,7 @@ export const ClientDashboard = ({
             <section className="grid grid-cols-1 gap-4 rounded-3xl border border-brand-gray-100 bg-brand-gray-50 p-5 md:grid-cols-3">
               {[
                 { icon: Search, title: '1. Pilih advokat', detail: 'Bandingkan spesialis, harga, rating, dan jadwal.', action: 'Cari Advokat', onClick: onBrowseLawyers },
-                { icon: CreditCard, title: '2. Bayar booking', detail: pendingPaymentCount > 0 ? `${pendingPaymentCount} konsultasi menunggu pembayaran.` : 'Invoice dibuat setelah jadwal dipilih.', action: 'Cek Riwayat', onClick: onViewHistory },
+                { icon: CreditCard, title: '2. Mulai sesi', detail: pendingSessionCount > 0 ? `${pendingSessionCount} konsultasi siap dibuka.` : 'Pembayaran diskip sementara untuk testing.', action: 'Buka Sesi', onClick: onViewHistory },
                 { icon: MessageSquare, title: '3. Konsultasi', detail: 'Chat, meeting, dokumen, dan review ada di riwayat kasus.', action: 'Buka Kasus', onClick: onViewHistory }
               ].map(item => (
                 <button
@@ -452,24 +452,24 @@ export const ClientDashboard = ({
                   <div className="p-3 bg-white rounded-2xl shadow-sm">
                     <CreditCard className="w-5 h-5 text-brand-black" />
                   </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-brand-gray-400 text-right">Pembayaran Berhasil</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-brand-gray-400 text-right">Mode Tanpa Pembayaran</span>
                 </div>
                 <div>
                   <p className="text-3xl font-bold font-display">Rp {paidPaymentTotal.toLocaleString('id-ID')}</p>
-                  <p className="text-[9px] font-bold text-brand-gray-400 uppercase tracking-widest mt-1">{pendingPaymentCount} invoice menunggu pembayaran</p>
+                  <p className="text-[9px] font-bold text-brand-gray-400 uppercase tracking-widest mt-1">{pendingSessionCount} konsultasi siap dibuka</p>
                 </div>
               </div>
 
               <div 
-                onClick={pendingPaymentCount > 0 ? onViewHistory : onViewDocuments}
+                onClick={pendingSessionCount > 0 ? onViewHistory : onViewDocuments}
                 className="border-2 border-dashed border-brand-gray-200 bg-white/50 rounded-[32px] p-8 flex flex-col items-center justify-center space-y-3 group cursor-pointer hover:bg-white transition-all shadow-sm"
               >
                 <div className="p-4 bg-brand-gray-100 rounded-2xl group-hover:bg-brand-black transition-colors shadow-sm">
                   <Upload className="w-5 h-5 text-brand-gray-400 group-hover:text-white" />
                 </div>
                 <div className="text-center">
-                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1">{pendingPaymentCount > 0 ? 'Bayar Invoice' : 'Unggah Dokumen'}</p>
-                  <p className="text-[8px] text-brand-gray-300 font-medium">{pendingPaymentCount > 0 ? 'Buka riwayat kasus untuk lanjut bayar' : 'PDF, PNG, JPG (Maks 20MB)'}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest mb-1">{pendingSessionCount > 0 ? 'Buka Konsultasi' : 'Unggah Dokumen'}</p>
+                  <p className="text-[8px] text-brand-gray-300 font-medium">{pendingSessionCount > 0 ? 'Payment sedang diskip sementara' : 'PDF, PNG, JPG (Maks 20MB)'}</p>
                 </div>
               </div>
             </div>
