@@ -1,37 +1,25 @@
 import React, { useState } from 'react';
 import { 
-  ArrowLeft, Calendar as CalendarIcon, Clock, MessageSquare, 
-  Video, Phone, FileText, ChevronRight, CheckCircle2, ShieldCheck
+  ArrowLeft, MessageSquare, FileText, ChevronRight, ShieldCheck
 } from 'lucide-react';
 import { Lawyer, ConsultationType } from '../types';
 import { createConsultation, getStoredUser } from '../api';
 
 export const BookingPage = ({ 
   lawyer, 
-  initialType = ConsultationType.CHAT,
   onBack,
   onConfirm
 }: { 
   lawyer: Lawyer, 
-  initialType?: ConsultationType,
   onBack: () => void,
   onConfirm: (data: any) => void
 }) => {
-  const [selectedType, setSelectedType] = useState<ConsultationType>(initialType);
   const [selectedDay, setSelectedDay] = useState(lawyer.availability[0]?.day || '');
   const [selectedTime, setSelectedTime] = useState('');
   const [notes, setNotes] = useState('');
   const [message, setMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-
-  const types = [
-    { id: ConsultationType.CHAT, icon: MessageSquare, label: 'Chat', multiplier: 1 },
-    { id: ConsultationType.PHONE, icon: Phone, label: 'Voice Call', multiplier: 1.2 },
-    { id: ConsultationType.VIDEO, icon: Video, label: 'Video Call', multiplier: 1.5 },
-  ];
-
-  const currentType = types.find(t => t.id === selectedType);
-  const estimatedPrice = lawyer.price * (currentType?.multiplier || 1);
+  const estimatedPrice = lawyer.price;
 
   const handleConfirm = async () => {
     if (!selectedDay || !selectedTime) return;
@@ -48,7 +36,7 @@ export const BookingPage = ({
       const consultation = await createConsultation({
         clientId: user.id,
         lawyerId: lawyer.id,
-        type: selectedType,
+        type: ConsultationType.CHAT,
         day: selectedDay,
         time: selectedTime,
         notes,
@@ -60,7 +48,7 @@ export const BookingPage = ({
         lawyerId: lawyer.id,
         lawyer,
         lawyerName: lawyer.name,
-        type: selectedType,
+        type: ConsultationType.CHAT,
         day: selectedDay,
         time: selectedTime,
         notes,
@@ -100,26 +88,21 @@ export const BookingPage = ({
             </div>
           </section>
 
-          {/* Type Selection */}
-          <section className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-black">1. Jenis Konsultasi</h4>
-            <div className="grid grid-cols-3 gap-4">
-              {types.map(type => (
-                <button
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id)}
-                  className={`flex flex-col items-center justify-center p-6 rounded-2xl border transition-all ${selectedType === type.id ? 'bg-brand-black text-white border-brand-black shadow-lg shadow-black/20' : 'bg-white border-brand-gray-100 text-brand-gray-400 hover:border-brand-gray-300'}`}
-                >
-                  <type.icon className="w-6 h-6 mb-3" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{type.label}</span>
-                </button>
-              ))}
+          <section className="bg-white p-6 rounded-3xl border border-brand-gray-100 flex items-start space-x-4">
+            <div className="w-12 h-12 rounded-2xl bg-brand-black text-white flex items-center justify-center flex-shrink-0">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-black">Sesi Konsultasi</h4>
+              <p className="mt-2 text-sm font-medium text-brand-gray-500 leading-relaxed">
+                Semua konsultasi dibuka lewat ruang chat FINPROSE. Dari dalam chat, Anda bisa langsung memakai telepon atau video call.
+              </p>
             </div>
           </section>
 
           {/* Schedule Selection */}
           <section className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-black">2. Pilih Jadwal</h4>
+            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-black">1. Pilih Jadwal</h4>
             <div className="bg-white p-8 rounded-3xl border border-brand-gray-100 space-y-8">
               <div className="space-y-4">
                 <p className="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest">Hari Tersedia</p>
@@ -155,7 +138,7 @@ export const BookingPage = ({
 
           {/* Legal Notes */}
           <section className="space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-black">3. Catatan Masalah Hukum</h4>
+            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-brand-black">2. Catatan Masalah Hukum</h4>
             <div className="relative">
                 <FileText className="absolute left-4 top-5 w-5 h-5 text-brand-gray-300" />
                 <textarea 
@@ -176,7 +159,7 @@ export const BookingPage = ({
             <div className="space-y-4">
                 <div className="flex justify-between text-sm">
                     <span className="text-brand-gray-400 font-medium">Jenis</span>
-                    <span className="font-bold">{currentType?.label}</span>
+                    <span className="font-bold">Sesi Konsultasi</span>
                 </div>
                 <div className="flex justify-between text-sm">
                     <span className="text-brand-gray-400 font-medium">Jadwal</span>

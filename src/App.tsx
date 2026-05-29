@@ -63,19 +63,12 @@ const consultationToLawyer = (row: ConsultationRow): Lawyer => ({
   availability: []
 });
 
-const viewForConsultationType = (type?: string): ViewState => {
-  if (type === ConsultationType.VIDEO) return 'meeting';
-  if (type === ConsultationType.PHONE) return 'meeting';
-  return 'chat';
-};
-
 export default function App() {
   const [view, setView] = useState<ViewState>(getInitialView);
   const [preAuthRole, setPreAuthRole] = useState<'client' | 'lawyer' | 'admin'>('client');
   const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
   const [meetingMode, setMeetingMode] = useState<'video' | 'voice'>('video');
   const [bookingData, setBookingData] = useState<any>(null);
-  const [initialConsultationType, setInitialConsultationType] = useState<ConsultationType>(ConsultationType.CHAT);
 
   useEffect(() => {
     restoreSupabaseSession().then((user) => {
@@ -118,8 +111,8 @@ export default function App() {
   const handleConfirmBooking = (data: any) => {
     console.log('Booking Confirmed:', data);
     setBookingData(data);
-    setMeetingMode(data?.type === ConsultationType.PHONE ? 'voice' : 'video');
-    setView(viewForConsultationType(data?.type));
+    setMeetingMode('video');
+    setView('chat');
   };
 
   return (
@@ -170,10 +163,8 @@ export default function App() {
         <LawyerDetail 
           lawyer={selectedLawyer}
           onBack={() => setView('lawyer-list')}
-          onAction={(type) => {
-            const nextType = type === 'book' ? ConsultationType.CHAT : type;
-            setInitialConsultationType(nextType as ConsultationType);
-            setMeetingMode(type === 'phone' ? 'voice' : 'video');
+          onAction={() => {
+            setMeetingMode('video');
             setView('booking');
           }}
         />
@@ -181,7 +172,6 @@ export default function App() {
       {view === 'booking' && selectedLawyer && (
         <BookingPage 
             lawyer={selectedLawyer}
-            initialType={initialConsultationType}
             onBack={() => setView('lawyer-detail')}
             onConfirm={handleConfirmBooking}
         />
@@ -267,8 +257,8 @@ export default function App() {
               time: row.scheduled_time || undefined
             });
 
-            setMeetingMode(row.consultation_type === ConsultationType.PHONE ? 'voice' : 'video');
-            setView(viewForConsultationType(row.consultation_type));
+            setMeetingMode('video');
+            setView('chat');
           }}
         />
       )}

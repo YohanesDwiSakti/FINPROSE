@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, Star, Clock, Globe, ShieldCheck, GraduationCap, 
-  Award, Calendar, MessageSquare, Video, Phone, ChevronRight, 
+  Award, Calendar, MessageSquare, ChevronRight, 
   MapPin, CheckCircle2, User, Heart, Share2, Info
 } from 'lucide-react';
 import { Lawyer } from '../types';
@@ -14,7 +14,7 @@ export const LawyerDetail = ({
 }: { 
   lawyer: Lawyer, 
   onBack: () => void,
-  onAction: (type: 'chat' | 'video' | 'phone' | 'book') => void
+  onAction: (type: 'book') => void
 }) => {
   const [selectedDay, setSelectedDay] = useState(lawyer.availability[0]?.day || '');
   const [selectedTime, setSelectedTime] = useState('');
@@ -201,34 +201,18 @@ export const LawyerDetail = ({
 
                 <div className="space-y-3">
                     <button 
-                        onClick={() => onAction('chat')}
+                        onClick={() => onAction('book')}
                         className="w-full py-4 bg-white text-brand-black rounded-2xl text-xs font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-3"
                     >
                         <MessageSquare className="w-4 h-4" />
-                        <span>Booking Chat</span>
+                        <span>Booking Konsultasi</span>
                     </button>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button 
-                            onClick={() => onAction('video')}
-                            className="bg-zinc-900 border border-zinc-800 py-4 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-zinc-800 transition-colors"
-                        >
-                            <Video className="w-4 h-4" />
-                            <span className="text-[8px] font-bold uppercase tracking-widest">Video Call</span>
-                        </button>
-                        <button 
-                            onClick={() => onAction('phone')}
-                            className="bg-zinc-900 border border-zinc-800 py-4 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:bg-zinc-800 transition-colors"
-                        >
-                            <Phone className="w-4 h-4" />
-                            <span className="text-[8px] font-bold uppercase tracking-widest">Telepon</span>
-                        </button>
-                    </div>
                 </div>
 
                 <div className="bg-zinc-900/50 p-4 rounded-2xl flex items-start space-x-3 border border-zinc-900">
                     <Info className="w-4 h-4 text-zinc-600 mt-0.5" />
                     <p className="text-[9px] text-zinc-500 font-medium leading-relaxed uppercase tracking-wider">
-                        Setelah pembayaran sukses, konsultasi langsung dibuka di sistem FINPROSE sesuai mode yang dipilih.
+                        Konsultasi dibuka di chat FINPROSE. Telepon dan video call bisa dipakai dari dalam ruang chat.
                     </p>
                 </div>
             </div>
