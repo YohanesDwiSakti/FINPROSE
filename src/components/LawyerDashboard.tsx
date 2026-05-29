@@ -229,7 +229,7 @@ export const LawyerDashboard = ({
     if (consultations.length === 0 && user.id === 'local-lawyer') return CLIENTS;
     const seen = new Set<string>();
     return consultations
-      .filter(item => item.client_id && !seen.has(item.client_id))
+      .filter(item => item.client_id && !seen.has(item.client_id) && !isHistoryStatus(item.status))
       .map(item => {
         seen.add(item.client_id || '');
         return {
@@ -237,7 +237,8 @@ export const LawyerDashboard = ({
           name: item.profiles?.full_name || 'Klien FINPROSE',
           case: item.notes || item.consultation_type,
           status: item.status,
-          image: '/lawyer1.png'
+          image: '/lawyer1.png',
+          consultation: item
         };
       });
   }, [consultations, user.id]);
@@ -461,9 +462,12 @@ export const LawyerDashboard = ({
                      <p className="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest mt-1">Perkara: {client.case}</p>
                    </div>
                    <div className="pt-6 border-t border-brand-gray-200/50 flex items-center justify-between">
-                     <button onClick={() => openAction(`Hubungi ${client.name}`, `Membuka kanal chat untuk perkara ${client.case}.`)} className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-brand-black">
+                     <button
+                       onClick={() => 'consultation' in client ? onOpenConsultation?.(client.consultation) : openAction(`Hubungi ${client.name}`, `Membuka kanal chat untuk perkara ${client.case}.`)}
+                       className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-brand-black"
+                     >
                        <MessageSquare className="w-4 h-4" />
-                       <span>Hubungi Klien</span>
+                       <span>Masuk Sesi</span>
                      </button>
                      <ChevronRight className="w-4 h-4 text-brand-gray-300" />
                    </div>
