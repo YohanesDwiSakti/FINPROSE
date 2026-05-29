@@ -115,6 +115,12 @@ export default function App() {
     setView('chat');
   };
 
+  const activeRole = getStoredUser()?.role || 'client';
+  const activeConsultationRole = activeRole === 'lawyer' ? 'lawyer' : 'client';
+  const leaveConsultationView = () => {
+    setView(activeRole === 'lawyer' ? 'lawyer-dash' : 'review');
+  };
+
   return (
     <div className="min-h-screen">
       {view === 'landing' && (
@@ -181,8 +187,8 @@ export default function App() {
           lawyer={selectedLawyer}
           consultationId={bookingData?.consultationId || bookingData?.id}
           clientId={bookingData?.clientId}
-          onBack={() => setView('review')}
-          currentUserRole={getStoredUser()?.role === 'lawyer' ? 'lawyer' : 'client'}
+          onBack={leaveConsultationView}
+          currentUserRole={activeConsultationRole}
           onStartCall={(mode) => {
             setMeetingMode(mode);
             setView('meeting');
@@ -193,9 +199,9 @@ export default function App() {
         <MeetingPage 
           lawyer={selectedLawyer}
           consultationId={bookingData?.consultationId || bookingData?.id}
-          currentUserRole={getStoredUser()?.role === 'lawyer' ? 'lawyer' : 'client'}
+          currentUserRole={activeConsultationRole}
           isVoiceOnly={meetingMode === 'voice'}
-          onEndCall={() => setView('review')}
+          onEndCall={leaveConsultationView}
         />
       )}
       {view === 'admin-dash' && (
