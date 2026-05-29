@@ -43,7 +43,7 @@ async function ensureSupabaseProfile(
     (typeof metadata.full_name === 'string' ? metadata.full_name : '') ||
     email
   ).trim();
-  const profileStatus = role === 'lawyer' ? 'pending_verification' : 'active';
+  const profileStatus = 'active';
 
   const { error: profileError } = await client
     .from('profiles')
@@ -69,13 +69,34 @@ async function ensureSupabaseProfile(
     const { error } = await client.from('lawyer_profiles').upsert({
       user_id: user.id,
       specialty: 'Belum diisi',
-      description: 'Profil advokat sedang menunggu verifikasi admin.',
+      description: 'Advokat FINPROSE terverifikasi.',
       experience_years: 0,
       consultation_price: 150000,
-      verification_status: 'pending'
+      verification_status: 'verified'
     }, { onConflict: 'user_id' });
 
     if (error) throw error;
+
+    const { error: directoryError } = await client.from('lawyer_directory').upsert({
+      id: user.id,
+      name: fullName,
+      specialty: 'Belum diisi',
+      description: 'Advokat FINPROSE terverifikasi.',
+      experience_years: 0,
+      consultation_price: 150000,
+      image: '/lawyer1.png',
+      verification_status: 'verified',
+      languages: ['Bahasa Indonesia'],
+      education: [],
+      certifications: ['Verifikasi otomatis FINPROSE'],
+      availability: [
+        { day: 'Senin', times: ['09:00', '11:00', '14:00'] },
+        { day: 'Rabu', times: ['10:00', '13:00', '15:00'] },
+        { day: 'Jumat', times: ['09:30', '13:30', '16:00'] }
+      ]
+    }, { onConflict: 'id' });
+
+    if (directoryError) throw directoryError;
   }
 }
 
@@ -111,7 +132,7 @@ export async function signUpWithSupabase(payload: {
   if (error) throw error;
   if (!data.user) throw new Error('Supabase tidak mengembalikan user baru.');
 
-  const profileStatus = role === 'lawyer' ? 'pending_verification' : 'active';
+  const profileStatus = 'active';
   if (data.session) {
     await ensureSupabaseProfile(client, data.user, {
       fullName: payload.fullName,

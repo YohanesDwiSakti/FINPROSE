@@ -86,7 +86,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const status = role === 'lawyer' ? 'pending_verification' : 'active';
+    const status = 'active';
     await supabaseRest('POST', 'profiles?on_conflict=id', {
       id: data.user.id,
       full_name: fullName,
@@ -99,10 +99,29 @@ export default async function handler(req, res) {
       await supabaseRest('POST', 'lawyer_profiles?on_conflict=user_id', {
         user_id: data.user.id,
         specialty: 'Belum diisi',
-        description: 'Profil advokat sedang menunggu verifikasi admin.',
+        description: 'Advokat FINPROSE terverifikasi.',
         experience_years: 0,
         consultation_price: 150000,
-        verification_status: 'pending'
+        verification_status: 'verified'
+      });
+
+      await supabaseRest('POST', 'lawyer_directory?on_conflict=id', {
+        id: data.user.id,
+        name: fullName,
+        specialty: 'Belum diisi',
+        description: 'Advokat FINPROSE terverifikasi.',
+        experience_years: 0,
+        consultation_price: 150000,
+        image: '/lawyer1.png',
+        verification_status: 'verified',
+        languages: ['Bahasa Indonesia'],
+        education: [],
+        certifications: ['Verifikasi otomatis FINPROSE'],
+        availability: [
+          { day: 'Senin', times: ['09:00', '11:00', '14:00'] },
+          { day: 'Rabu', times: ['10:00', '13:00', '15:00'] },
+          { day: 'Jumat', times: ['09:30', '13:30', '16:00'] }
+        ]
       });
     } else {
       await supabaseRest('POST', 'client_profiles?on_conflict=user_id', {
