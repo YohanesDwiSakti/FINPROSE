@@ -115,8 +115,18 @@ export default function App() {
     setView('chat');
   };
 
-  const activeRole = getStoredUser()?.role || 'client';
+  const activeUser = getStoredUser();
+  const activeRole = activeUser?.role || 'client';
   const activeConsultationRole = activeRole === 'lawyer' ? 'lawyer' : 'client';
+  const remoteMeetingName = activeRole === 'lawyer'
+    ? bookingData?.clientName || 'Klien FINPROSE'
+    : selectedLawyer?.name || 'Advokat FINPROSE';
+  const remoteMeetingSubtitle = activeRole === 'lawyer'
+    ? 'Customer'
+    : selectedLawyer?.specialty || 'Konsultasi Hukum';
+  const remoteMeetingImage = activeRole === 'lawyer'
+    ? undefined
+    : selectedLawyer?.image;
   const leaveConsultationView = async () => {
     if (activeRole === 'lawyer') {
       setView('lawyer-dash');
@@ -209,6 +219,10 @@ export default function App() {
           lawyer={selectedLawyer}
           consultationId={bookingData?.consultationId || bookingData?.id}
           currentUserRole={activeConsultationRole}
+          localParticipantName={activeUser?.name || 'Anda'}
+          remoteParticipantName={remoteMeetingName}
+          remoteParticipantSubtitle={remoteMeetingSubtitle}
+          remoteParticipantImage={remoteMeetingImage}
           isVoiceOnly={meetingMode === 'voice'}
           onEndCall={leaveConsultationView}
         />
@@ -243,6 +257,7 @@ export default function App() {
               consultationId: consultation.id,
               clientId: consultation.client_id,
               lawyerId: consultation.lawyer_id,
+              clientName: consultation.profiles?.full_name || 'Klien FINPROSE',
               type: consultation.consultation_type,
               price: consultation.price,
               day: consultation.scheduled_day,

@@ -14,15 +14,28 @@ export const MeetingPage = ({
   lawyer,
   consultationId,
   currentUserRole = 'client',
+  localParticipantName,
+  remoteParticipantName,
+  remoteParticipantSubtitle,
+  remoteParticipantImage,
   onEndCall,
   isVoiceOnly = false
 }: {
   lawyer: Lawyer,
   consultationId?: string,
   currentUserRole?: 'client' | 'lawyer',
+  localParticipantName?: string,
+  remoteParticipantName?: string,
+  remoteParticipantSubtitle?: string,
+  remoteParticipantImage?: string,
   onEndCall: () => void,
   isVoiceOnly?: boolean
 }) => {
+  const storedUser = getStoredUser();
+  const localName = localParticipantName || storedUser?.name || 'Anda';
+  const remoteName = remoteParticipantName || lawyer.name;
+  const remoteSubtitle = remoteParticipantSubtitle || (currentUserRole === 'lawyer' ? 'Customer' : lawyer.specialty);
+  const remoteImage = remoteParticipantImage || (currentUserRole === 'lawyer' ? '' : lawyer.image);
   const [micOn, setMicOn] = useState(true);
   const [videoOn, setVideoOn] = useState(!isVoiceOnly);
   const [isRecording, setIsRecording] = useState(false);
@@ -44,6 +57,11 @@ export const MeetingPage = ({
   const timerRef = useRef<number | null>(null);
   const pollRef = useRef<number | null>(null);
   const signalSinceRef = useRef(new Date(Date.now() - 120000).toISOString());
+  const peerIdRef = useRef(
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `peer-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -78,7 +96,10 @@ export const MeetingPage = ({
         senderId: user.id,
         senderRole: currentUserRole,
         signalType,
-        payload
+        payload: {
+          ...(payload || {}),
+          peerId: peerIdRef.current
+        }
       }).catch(() => null);
     };
 
@@ -97,11 +118,12 @@ export const MeetingPage = ({
       if (!active || !peerRef.current) return;
       if (processedSignalsRef.current.has(signal.id)) return;
       processedSignalsRef.current.add(signal.id);
-      if (signal.sender_id === user?.id) return;
+      if (signal.payload?.peerId === peerIdRef.current) return;
 
       const peer = peerRef.current;
+      const { peerId: _peerId, ...signalPayload } = signal.payload || {};
       if (signal.signal_type === 'offer') {
-        await peer.setRemoteDescription(new RTCSessionDescription(signal.payload));
+        await peer.setRemoteDescription(new RTCSessionDescription(signalPayload));
         await flushQueuedCandidates();
         const answer = await peer.createAnswer();
         await peer.setLocalDescription(answer);
@@ -112,14 +134,14 @@ export const MeetingPage = ({
 
       if (signal.signal_type === 'answer') {
         if (peer.signalingState === 'have-local-offer') {
-          await peer.setRemoteDescription(new RTCSessionDescription(signal.payload));
+          await peer.setRemoteDescription(new RTCSessionDescription(signalPayload));
           await flushQueuedCandidates();
         }
         return;
       }
 
       if (signal.signal_type === 'candidate') {
-        const candidate = signal.payload as RTCIceCandidateInit;
+        const candidate = signalPayload as RTCIceCandidateInit;
         if (peer.remoteDescription) {
           await peer.addIceCandidate(candidate).catch(() => null);
         } else {
@@ -207,12 +229,15 @@ export const MeetingPage = ({
       setCallState('waiting');
       setCallMessage(currentUserRole === 'client' ? 'Memanggil advokat...' : 'Menunggu panggilan dari customer...');
 
-      pollRef.current = window.setInterval(async () => {
+      const pollSignals = async () => {
         const signals = await fetchCallSignals(consultationId, signalSinceRef.current).catch(() => []);
         for (const signal of signals) {
           await processSignal(signal);
         }
-      }, 1500);
+      };
+
+      await pollSignals();
+      pollRef.current = window.setInterval(pollSignals, 1500);
 
       if (currentUserRole === 'client' && !hasCreatedOfferRef.current) {
         hasCreatedOfferRef.current = true;
@@ -287,10 +312,16 @@ export const MeetingPage = ({
             />
             {(callState !== 'connected' || isVoiceOnly) && (
               <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6 bg-zinc-900">
-                <img src={lawyer.image} className="w-40 h-40 rounded-full object-cover grayscale border-8 border-white/5" alt={lawyer.name} />
+                {remoteImage ? (
+                  <img src={remoteImage} className="w-40 h-40 rounded-full object-cover grayscale border-8 border-white/5" alt={remoteName} />
+                ) : (
+                  <div className="w-40 h-40 rounded-full border-8 border-white/5 bg-white text-brand-black flex items-center justify-center text-5xl font-bold">
+                    {remoteName[0] || 'K'}
+                  </div>
+                )}
                 <div className="text-center max-w-sm px-6">
-                  <h2 className="text-2xl font-bold font-display">{lawyer.name}</h2>
-                  <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs mt-2">{lawyer.specialty}</p>
+                  <h2 className="text-2xl font-bold font-display">{remoteName}</h2>
+                  <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs mt-2">{remoteSubtitle}</p>
                   <p className="mt-5 text-xs font-bold uppercase tracking-widest text-zinc-400">{callMessage}</p>
                 </div>
               </div>
@@ -298,7 +329,7 @@ export const MeetingPage = ({
 
             <div className="absolute bottom-8 left-8 bg-black/40 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10">
               <h3 className="font-bold text-sm flex items-center space-x-2">
-                <span>{lawyer.name}</span>
+                <span>{remoteName}</span>
                 <div className={`w-1.5 h-1.5 rounded-full ${statusColor}`}></div>
               </h3>
             </div>
@@ -315,7 +346,7 @@ export const MeetingPage = ({
             {(!videoOn || isVoiceOnly) && (
               <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
                 <div className="w-14 h-14 rounded-2xl bg-white text-brand-black flex items-center justify-center text-xl font-bold">
-                  {getStoredUser()?.name?.[0] || 'A'}
+                  {localName[0] || 'A'}
                 </div>
                 <p className="mt-3 text-[9px] font-bold uppercase tracking-widest text-zinc-500">Kamera mati</p>
               </div>
@@ -323,7 +354,7 @@ export const MeetingPage = ({
             <div className="absolute top-4 right-4 p-1.5 bg-black/40 rounded-lg">
               {micOn ? <Mic className="w-3 h-3" /> : <MicOff className="w-3 h-3 text-red-500" />}
             </div>
-            <div className="absolute bottom-4 left-4 text-[10px] font-bold uppercase tracking-widest">Anda</div>
+            <div className="absolute bottom-4 left-4 text-[10px] font-bold uppercase tracking-widest">{localName}</div>
           </div>
         </div>
 
