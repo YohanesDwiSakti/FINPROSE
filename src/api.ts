@@ -197,7 +197,7 @@ export type CallSignalRow = {
   consultation_id: string;
   sender_id: string | null;
   sender_role: string;
-  signal_type: 'offer' | 'answer' | 'candidate' | 'leave';
+  signal_type: 'ring' | 'offer' | 'answer' | 'candidate' | 'leave';
   payload: any;
   created_at: string;
 };
@@ -791,7 +791,7 @@ export function sendCallSignal(payload: {
   consultationId: string;
   senderId: string;
   senderRole: 'client' | 'lawyer';
-  signalType: 'offer' | 'answer' | 'candidate' | 'leave';
+  signalType: 'ring' | 'offer' | 'answer' | 'candidate' | 'leave';
   payload: any;
 }) {
   return request<CallSignalRow>('/calls', {

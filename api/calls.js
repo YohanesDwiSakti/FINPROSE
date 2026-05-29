@@ -23,7 +23,7 @@ async function sendSignal(body) {
 
   if (!consultationId) throw new Error('Consultation ID wajib tersedia.');
   if (!senderId) throw new Error('User belum login.');
-  if (!['offer', 'answer', 'candidate', 'leave'].includes(signalType)) {
+  if (!['ring', 'offer', 'answer', 'candidate', 'leave'].includes(signalType)) {
     throw new Error('Tipe sinyal call tidak valid.');
   }
 

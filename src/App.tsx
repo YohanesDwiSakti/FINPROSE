@@ -139,6 +139,9 @@ export default function App() {
     }
     setView('review');
   };
+  const leaveCallView = () => {
+    setView('chat');
+  };
 
   return (
     <div className="min-h-screen">
@@ -227,7 +230,7 @@ export default function App() {
           remoteParticipantSubtitle={remoteMeetingSubtitle}
           remoteParticipantImage={remoteMeetingImage}
           isVoiceOnly={meetingMode === 'voice'}
-          onEndCall={leaveConsultationView}
+          onEndCall={leaveCallView}
         />
       )}
       {view === 'admin-dash' && (

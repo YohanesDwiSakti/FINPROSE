@@ -39,7 +39,6 @@ export const MeetingPage = ({
   const [micOn, setMicOn] = useState(true);
   const [videoOn, setVideoOn] = useState(!isVoiceOnly);
   const [isRecording, setIsRecording] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(3600);
   const [showChat, setShowChat] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [callState, setCallState] = useState<CallState>('idle');
@@ -54,7 +53,6 @@ export const MeetingPage = ({
   const processedSignalsRef = useRef<Set<string>>(new Set());
   const queuedCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const hasCreatedOfferRef = useRef(false);
-  const timerRef = useRef<number | null>(null);
   const pollRef = useRef<number | null>(null);
   const signalSinceRef = useRef(new Date(Date.now() - 120000).toISOString());
   const peerIdRef = useRef(
@@ -62,14 +60,6 @@ export const MeetingPage = ({
       ? crypto.randomUUID()
       : `peer-${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
-    }, 1000);
-    timerRef.current = timer;
-    return () => window.clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const localStream = localStreamRef.current;
@@ -265,12 +255,6 @@ export const MeetingPage = ({
     };
   }, [consultationId, currentUserRole, isVoiceOnly]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   const statusColor = callState === 'connected' ? 'bg-green-500' : callState === 'error' ? 'bg-red-500' : 'bg-amber-400';
 
   return (
@@ -292,8 +276,8 @@ export const MeetingPage = ({
 
         <div className="flex items-center space-x-4">
           <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex items-center space-x-3">
-            <div className={`w-2 h-2 rounded-full ${timeLeft < 300 ? 'bg-red-500 animate-ping' : statusColor}`}></div>
-            <span className="text-xs font-mono font-bold">{formatTime(timeLeft)}</span>
+            <div className={`w-2 h-2 rounded-full ${statusColor}`}></div>
+            <span className="text-xs font-bold uppercase tracking-widest">{callState === 'connected' ? 'Terhubung' : 'Menghubungkan'}</span>
           </div>
           <button onClick={() => document.documentElement.requestFullscreen?.()} className="p-2 hover:bg-white/10 rounded-full transition-colors" title="Layar penuh">
             <Maximize className="w-5 h-5" />

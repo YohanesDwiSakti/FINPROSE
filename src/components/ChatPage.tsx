@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, Send, Paperclip, Image as ImageIcon, Mic, 
-  MoreVertical, ShieldCheck, Clock, FileText, Download, 
+  MoreVertical, ShieldCheck, FileText, Download, 
   X, CheckCheck, User, Camera, Ban, Phone, Video, MessageSquare
 } from 'lucide-react';
 import { Lawyer, Message, MessageType } from '../types';
 import { ActionModal } from './ActionModal';
-import { fetchChatMessages, getOrCreateChatSession, getStoredUser, sendChatMessage, type AppMessageRow } from '../api';
+import { fetchCallSignals, fetchChatMessages, getOrCreateChatSession, getStoredUser, sendCallSignal, sendChatMessage, type AppMessageRow } from '../api';
 
 export const ChatPage = ({ 
   lawyer, 
@@ -37,17 +37,52 @@ export const ChatPage = ({
   const [chatSessionId, setChatSessionId] = useState('');
   const [isDatabaseBacked, setIsDatabaseBacked] = useState(!consultationId);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(3600); // 60 minutes in seconds
+  const [incomingCall, setIncomingCall] = useState<{ mode: 'video' | 'voice'; from: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const processedCallSignalsRef = useRef<Set<string>>(new Set());
+  const callSignalSinceRef = useRef(new Date(Date.now() - 120000).toISOString());
+  const callPeerIdRef = useRef(
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `chat-peer-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
   const [modal, setModal] = useState<{ title: string; description: string } | null>(null);
   const fallbackStorageKey = consultationId ? `finprose_chat_fallback_${consultationId}` : '';
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    if (!consultationId) return;
+
+    let mounted = true;
+    const pollIncomingCall = async () => {
+      const signals = await fetchCallSignals(consultationId, callSignalSinceRef.current).catch(() => []);
+      if (!mounted) return;
+
+      for (const signal of signals) {
+        if (processedCallSignalsRef.current.has(signal.id)) continue;
+        processedCallSignalsRef.current.add(signal.id);
+        if (signal.payload?.peerId === callPeerIdRef.current) continue;
+
+        if (signal.signal_type === 'ring') {
+          setIncomingCall({
+            mode: signal.payload?.mode === 'voice' ? 'voice' : 'video',
+            from: signal.payload?.callerName || remoteName
+          });
+        }
+
+        if (signal.signal_type === 'leave') {
+          setIncomingCall(null);
+        }
+      }
+    };
+
+    pollIncomingCall();
+    const poll = window.setInterval(pollIncomingCall, 1500);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(poll);
+    };
+  }, [consultationId, remoteName]);
 
   const mapMessage = (row: AppMessageRow): Message => ({
     id: row.id,
@@ -114,10 +149,22 @@ export const ChatPage = ({
     }
   }, [messages]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const startCall = async (mode: 'video' | 'voice') => {
+    const user = getStoredUser();
+    if (consultationId && user?.id) {
+      await sendCallSignal({
+        consultationId,
+        senderId: user.id,
+        senderRole: currentUserRole,
+        signalType: 'ring',
+        payload: {
+          mode,
+          callerName: user.name,
+          peerId: callPeerIdRef.current
+        }
+      }).catch(() => null);
+    }
+    onStartCall?.(mode);
   };
 
   const handleSendMessage = async () => {
@@ -165,6 +212,37 @@ export const ChatPage = ({
   return (
     <div className="flex flex-col h-screen bg-brand-gray-50 overflow-hidden font-sans">
       {modal && <ActionModal title={modal.title} description={modal.description} onClose={() => setModal(null)} />}
+      {incomingCall && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-black/30 p-6 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-[32px] border border-brand-gray-100 bg-white p-8 shadow-2xl shadow-black/20">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-black text-white">
+              {incomingCall.mode === 'voice' ? <Phone className="h-7 w-7" /> : <Video className="h-7 w-7" />}
+            </div>
+            <h3 className="text-center font-display text-2xl font-bold">Panggilan Masuk</h3>
+            <p className="mt-3 text-center text-sm font-medium leading-6 text-brand-gray-500">
+              {incomingCall.from} mengajak {incomingCall.mode === 'voice' ? 'telepon' : 'video call'} di konsultasi ini.
+            </p>
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setIncomingCall(null)}
+                className="rounded-2xl border border-brand-gray-100 bg-white py-4 text-[10px] font-bold uppercase tracking-widest text-brand-gray-500"
+              >
+                Tolak
+              </button>
+              <button
+                onClick={() => {
+                  const mode = incomingCall.mode;
+                  setIncomingCall(null);
+                  onStartCall?.(mode);
+                }}
+                className="rounded-2xl bg-brand-black py-4 text-[10px] font-bold uppercase tracking-widest text-white"
+              >
+                Terima
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-white border-b border-brand-gray-100 px-6 py-4 flex items-center justify-between z-10 shadow-sm">
         <div className="flex items-center space-x-4">
@@ -193,21 +271,16 @@ export const ChatPage = ({
         </div>
 
         <div className="flex items-center space-x-2 md:space-x-6">
-          <div className="hidden md:flex items-center space-x-2 bg-brand-black text-white px-4 py-2 rounded-xl">
-            <Clock className="w-4 h-4" />
-            <span className="text-xs font-bold font-mono">{formatTime(timeLeft)}</span>
-          </div>
-          
           <div className="flex items-center border-l border-brand-gray-100 pl-2 md:pl-6 space-x-1 md:space-x-2">
             <button 
-              onClick={() => onStartCall?.('voice')}
+              onClick={() => startCall('voice')}
               className="p-2 hover:bg-brand-gray-50 rounded-full transition-colors text-brand-gray-400 hover:text-brand-black"
               title="Voice Call"
             >
               <Phone className="w-5 h-5" />
             </button>
             <button 
-              onClick={() => onStartCall?.('video')}
+              onClick={() => startCall('video')}
               className="p-2 hover:bg-brand-gray-50 rounded-full transition-colors text-brand-gray-400 hover:text-brand-black"
               title="Video Call"
             >
@@ -219,12 +292,6 @@ export const ChatPage = ({
           </div>
         </div>
       </header>
-
-      {/* Timer Bar (Mobile Only) */}
-      <div className="md:hidden bg-brand-black text-white py-2 px-6 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-        <span>Sisa Waktu Sesi</span>
-        <span className="font-mono">{formatTime(timeLeft)}</span>
-      </div>
 
       {/* Messages Area */}
       <div 
