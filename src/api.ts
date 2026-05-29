@@ -192,6 +192,16 @@ export type AppMessageRow = {
   created_at: string;
 };
 
+export type CallSignalRow = {
+  id: string;
+  consultation_id: string;
+  sender_id: string | null;
+  sender_role: string;
+  signal_type: 'offer' | 'answer' | 'candidate' | 'leave';
+  payload: any;
+  created_at: string;
+};
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const authHeaders: Record<string, string> = {};
   try {
@@ -769,6 +779,25 @@ export async function sendChatMessage(payload: {
 
   if (error) throw error;
   return data as AppMessageRow;
+}
+
+export function fetchCallSignals(consultationId: string, since?: string) {
+  const params = new URLSearchParams({ consultationId });
+  if (since) params.set('since', since);
+  return request<CallSignalRow[]>(`/calls?${params.toString()}`);
+}
+
+export function sendCallSignal(payload: {
+  consultationId: string;
+  senderId: string;
+  senderRole: 'client' | 'lawyer';
+  signalType: 'offer' | 'answer' | 'candidate' | 'leave';
+  payload: any;
+}) {
+  return request<CallSignalRow>('/calls', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
 }
 
 export async function submitReview(payload: {

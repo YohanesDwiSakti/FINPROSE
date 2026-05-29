@@ -192,6 +192,8 @@ export default function App() {
       {view === 'meeting' && selectedLawyer && (
         <MeetingPage 
           lawyer={selectedLawyer}
+          consultationId={bookingData?.consultationId || bookingData?.id}
+          currentUserRole={getStoredUser()?.role === 'lawyer' ? 'lawyer' : 'client'}
           isVoiceOnly={meetingMode === 'voice'}
           onEndCall={() => setView('review')}
         />
