@@ -1,0 +1,260 @@
+﻿{
+  "common": {
+    "appName": "YDA LAW OFFICE & Partners",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "profileSettings": "Profile Settings",
+    "back": "Back",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "send": "Send",
+    "upload": "Upload",
+    "status": "Status",
+    "action": "Action",
+    "fee": "Consultation Fee",
+    "rating": "Rating",
+    "experience": "Experience",
+    "years": "Years",
+    "specialty": "Specialty",
+    "history": "History",
+    "documents": "Documents",
+    "help": "Help",
+    "admin": "Admin",
+    "lawyer": "Lawyer",
+    "client": "Client",
+    "guest": "Guest",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm"
+  },
+  "nav": {
+    "landing": "Home",
+    "lawyers": "Find Lawyers",
+    "rusdi": "AI Assistant Rusdi",
+    "testimonials": "Reviews",
+    "statistics": "Stats",
+    "faq": "FAQ"
+  },
+  "landing": {
+    "heroTitle": "Legal Justice at Your Fingertips",
+    "heroSubtitle": "YDA LAW OFFICE & Partners connects you with select Indonesian Lawyers instantly. Consult your case with Rusdi AI for free or schedule a video call with official legal experts.",
+    "startFreeAi": "Free Consultation with AI Rusdi",
+    "findLawyer": "Find Professional Lawyers",
+    "whyChooseUs": "Why Choose Us?",
+    "categoriesTitle": "Popular Legal Categories",
+    "categoriesSubtitle": "Find the best legal specialists tailored to your legal needs",
+    "topLawyersTitle": "Our Featured Lawyers",
+    "topLawyersSubtitle": "Officially licensed lawyers with top ratings and proven experience",
+    "processTitle": "Consultation Process Flow",
+    "processSubtitle": "Just 4 easy steps to resolve your legal issues",
+    "faqTitle": "Frequently Asked Questions",
+    "faqSubtitle": "Answers to common questions about the YDA LAW OFFICE & Partners platform and our services"
+  },
+  "categories": {
+    "family": {
+      "title": "Family Law",
+      "desc": "Divorce, child custody, inheritance, and other family legal matters."
+    },
+    "business": {
+      "title": "Business Law",
+      "desc": "Contracts, company incorporation, bankruptcy, and business disputes."
+    },
+    "criminal": {
+      "title": "Criminal Law",
+      "desc": "Criminal defense, domestic violence, fraud, and embezzlement."
+    },
+    "civil": {
+      "title": "Civil Law",
+      "desc": "Land disputes, breach of contract, and compensation claims."
+    },
+    "labor": {
+      "title": "Labor Law",
+      "desc": "Unfair dismissal, severance pay, workers' rights, and industrial disputes."
+    },
+    "tax": {
+      "title": "Tax Law",
+      "desc": "Tax disputes, objection filings, and tax compliance."
+    },
+    "inheritance": {
+      "title": "Inheritance Law",
+      "desc": "Estate distribution, grants, and inheritance rights disputes."
+    },
+    "others": {
+      "title": "Other Categories",
+      "desc": "Discover other legal specializations according to your needs."
+    }
+  },
+  "howItWorks": {
+    "title": "How Our Platform Works",
+    "step1": {
+      "title": "Register & Create Profile",
+      "desc": "Create an account in minutes and complete your legal profile."
+    },
+    "step2": {
+      "title": "Consult with Rusdi AI",
+      "desc": "Tell Rusdi AI about your case for initial analysis and lawyer recommendations."
+    },
+    "step3": {
+      "title": "Connect with Your Chosen Lawyer",
+      "desc": "Schedule a video consultation session with your chosen licensed lawyer."
+    }
+  },
+  "faq": {
+    "q1": "Is the AI Rusdi consultation truly free?",
+    "a1": "Yes, consulting with AI Rusdi is completely free with no limits. You only pay if you decide to schedule a session with a human lawyer.",
+    "q2": "How do I choose the right lawyer for my case?",
+    "a2": "Rusdi AI will analyze your case and recommend the most suitable lawyer based on their specialization, experience, and ratings.",
+    "q3": "Is my case data safe and confidential?",
+    "a3": "Your data security is our priority. All communications are encrypted and only the lawyer you choose can access your case details.",
+    "q4": "How much does a lawyer consultation cost?",
+    "a4": "Fees vary depending on the lawyer and type of consultation. You can view transparent rates on each lawyer's profile before booking."
+  },
+  "auth": {
+    "loginTitle": "Log in to YDA LAW OFFICE & Partners",
+    "loginSubtitle": "Please log in with your account to continue your legal consultation",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "rememberMe": "Remember Me",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "registerNow": "Register Now",
+    "registerTitle": "Register New Account",
+    "registerSubtitle": "Join for instant legal consultation access and AI Rusdi",
+    "fullNameLabel": "Full Name (As in ID Card)",
+    "roleLabel": "Account Type",
+    "haveAccount": "Already have an account?",
+    "loginNow": "Log In Now",
+    "errorMismatch": "Login role does not match this account.",
+    "errorInactive": "Account is currently inactive."
+  },
+  "guest": {
+    "title": "Restricted Access for Guests",
+    "message": "You are browsing the platform as a Guest. To book, use AI Rusdi, upload documents, or enter your personal dashboard, please log in or register first.",
+    "action": "Login / Register"
+  },
+  "rusdi": {
+    "title": "Rusdi - AI Legal Assistant",
+    "subtitle": "Consult your legal case securely. Rusdi can analyze legal documents and provide initial breakdowns automatically.",
+    "placeholder": "Type your message here (e.g. 'How do I sue for breach of contract?')...",
+    "uploadText": "Upload Document (PDF, DOCX, PNG, JPG, JPEG)",
+    "filePlaceholder": "Drag files here or click to upload",
+    "caseAnalysisTab": "Structured Case Analysis",
+    "lawyerRecTab": "Lawyer Recommendation",
+    "chatTab": "Open Chat",
+    "memoryTitle": "Session Chat Memory",
+    "analysisResult": "Rusdi's Legal Analysis Result",
+    "recommendationReason": "Recommendation Reason:",
+    "consultationGuidance": "Suggested Consultation Questions:",
+    "newChat": "New Chat",
+    "searchChats": "Search conversations...",
+    "archivedChats": "Archived",
+    "activeChats": "Active Chats",
+    "renameChat": "Rename",
+    "archiveChat": "Archive",
+    "unarchiveChat": "Restore",
+    "deleteChat": "Delete",
+    "noHistory": "No chat history yet.",
+    "noSearchResults": "No conversations found."
+  },
+  "dashboards": {
+    "admin": {
+      "totalUsers": "Total Users",
+      "totalLawyers": "Total Lawyers",
+      "totalConsultations": "Total Consultations",
+      "totalRevenue": "Total Revenue",
+      "aiUsage": "AI Usage",
+      "growth": "Monthly Growth",
+      "trendsTitle": "Monthly Consultation Trends",
+      "revenueTrends": "Revenue Trends (IDR)",
+      "categoryTrends": "Case Distribution by Category",
+      "lawyerPerformance": "Lawyer Performance (Ratings & Cases)",
+      "recentTransactions": "Recent Transactions",
+      "pendingVerification": "Pending Lawyer Verifications"
+    },
+    "lawyer": {
+      "activeCases": "Active Cases",
+      "monthlyRevenue": "Revenue This Month",
+      "upcomingAppointments": "Upcoming Appointments",
+      "avgRating": "Average Rating",
+      "availabilityTitle": "Manage Work Hours & Days",
+      "profileSpecialization": "Specialization & Fees",
+      "clientsDoc": "Client Documents"
+    },
+    "client": {
+      "welcome": "Welcome back",
+      "activeConsultations": "Your Active Consultations",
+      "uploadedDocs": "Your Legal Document Vault",
+      "recsLawyers": "Rusdi's Suggested Lawyers",
+      "aiConversations": "AI Rusdi Consultation History",
+      "bookNew": "Schedule New Consultation",
+      "findLawyer": "Find a Lawyer Now"
+    }
+  },
+  "payment": {
+    "title": "Payment",
+    "walletLabel": "Total Payments",
+    "completePaymentHint": "Complete payment to unlock your session",
+    "payNow": "Pay Now",
+    "selectMethod": "Select Payment Method",
+    "orderDetails": "Order Details",
+    "serviceFee": "Service Fee",
+    "tax": "Tax (VAT 11%)",
+    "grandTotal": "Grand Total",
+    "payViaMidtrans": "Submit Payment Proof",
+    "processing": "Processing...",
+    "securePayment": "Secure Manual Payment",
+    "securePaymentDesc": "Payments are verified manually by the lawyer or admin before the consultation session opens.",
+    "recentTransactions": "Recent Transactions",
+    "refresh": "Refresh",
+    "noTransactions": "No live transactions yet",
+    "noTransactionsDesc": "Invoices will appear after a consultation booking is created.",
+    "terms": "Terms & Conditions",
+    "termsAgree": "By paying, you agree to our Terms & Conditions.",
+    "pendingTitle": "Waiting Verification",
+    "pendingDesc": "Your payment proof has been submitted. The lawyer will review it before activating your session.",
+    "settlementTitle": "Payment Pending Verification",
+    "confirmPendingTitle": "Verification In Progress",
+    "paymentFailed": "Payment proof could not be submitted. Please try again.",
+    "popupClosed": "You can upload payment proof again from this page.",
+    "demoModeTitle": "Payment proof submitted",
+    "demoModeDesc": "Your payment proof was submitted successfully and is waiting for lawyer verification."
+  },
+  "booking": {
+    "title": "Consultation Booking",
+    "loginRequired": "Please log in as a client before making a booking.",
+    "failed": "Booking could not be saved",
+    "confirm": "Confirm Booking",
+    "selectSchedule": "Select Schedule",
+    "notes": "Case Notes",
+    "notesPlaceholder": "Describe a summary of your legal issue..."
+  },
+  "consultation": {
+    "openActive": "Open Active Consultation",
+    "paymentRequired": "Payment is required before accessing the consultation session.",
+    "legalConsultation": "Legal Consultation",
+    "oneSession": "1 Session (60 Minutes)"
+  },
+  "documents": {
+    "uploadHint": "PDF, PNG, JPG (Max 20MB)"
+  },
+  "admin": {
+    "clientsTitle": "Client Accounts",
+    "clientsDesc": "Search clients, check account status, and suspend/block when needed.",
+    "clientsNotFound": "No clients found",
+    "clientStatusUpdated": "Client Status Updated",
+    "clientUpdateFailed": "Client Update Failed"
+  },
+  "lawyer": {
+    "myClients": "My Clients",
+    "addClient": "Add Client",
+    "noActiveClients": "No active clients yet",
+    "clientsAppearAfterBooking": "Clients will appear after a booking is accepted or consultation starts.",
+    "selectClientTarget": "Select Target Client",
+    "noClientToSelect": "No clients available to select",
+    "clientColumn": "Client"
+  }
+}

@@ -1,0 +1,11 @@
+export { embedText, searchSimilar, upsertChunks, clearVectorStore } from './VectorStore';
+export type { KnowledgeChunk } from './VectorStore';
+export { retrieveLegalContext, formatRetrievedContext, searchKnowledgeBaseRemote } from './RetrievalService';
+export { loadConversationMemory, persistConversationTurn, buildMemoryPrompt } from './MemoryService';
+export type { ConversationMemory } from './MemoryService';
+export { analyzeLegalFile, analyzeBase64Attachment, validateUploadedFile } from './FileAnalyzer';
+export type { FileAnalysisResult } from './FileAnalyzer';
+export { recommendLawyers, formatRecommendationsForPrompt } from './RecommendationService';
+export type { LawyerRecommendationResult } from './RecommendationService';
+export { sendRusdiMessage, summarizeCase } from './ChatService';
+export type { RusdiChatInput, RusdiChatResult } from './ChatService';

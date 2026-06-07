@@ -1,0 +1,429 @@
+﻿/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { useEffect, useState } from 'react';
+import { LandingPage } from './components/LandingPage';
+import { LoginPage } from './components/LoginPage';
+import { RegisterPage } from './components/RegisterPage';
+import { ForgotPasswordPage } from './components/ForgotPasswordPage';
+import { OTPVerificationPage } from './components/OTPVerificationPage';
+import { LawyerDashboard } from './components/LawyerDashboard';
+import { ClientDashboard } from './components/ClientDashboard';
+import { LawyerList } from './components/LawyerList';
+import { LawyerDetail } from './components/LawyerDetail';
+import { BookingPage } from './components/BookingPage';
+import { PaymentPage } from './components/PaymentPage';
+import { ChatPage } from './components/ChatPage';
+import { MeetingPage } from './components/MeetingPage';
+import { CaseHistoryPage } from './components/CaseHistoryPage';
+import { DocumentVaultPage } from './components/DocumentVaultPage';
+import { ReviewPage } from './components/ReviewPage';
+import { AdminDashboard } from './components/AdminDashboard';
+import { HelpPage } from './components/HelpPage';
+import { ProfileSettingsPage } from './components/ProfileSettingsPage';
+import { LawyerProfileSettingsPage } from './components/LawyerProfileSettingsPage';
+import { Lawyer, ConsultationType } from './types';
+import {
+  canAccessConsultationSession,
+  consultationFromBookingData,
+  fetchClientConsultations,
+  getStoredUser,
+  requiresPayment,
+  updateConsultationStatus,
+  type ConsultationRow
+} from './api';
+import { restoreSupabaseSession, signOutSupabase } from './supabaseAuth';
+import { RusdiWidget } from './components/ai/RusdiWidget';
+import { RusdiPage } from './pages/RusdiPage';
+import { GlobalLanguageSwitcher } from './components/GlobalLanguageSwitcher';
+import { canAccessView, type AppView } from './utils/accessControl';
+
+type ViewState = AppView;
+
+const dashboardViewForRole = (role?: 'client' | 'lawyer' | 'admin'): ViewState => {
+  if (role === 'lawyer') return 'lawyer-dash';
+  if (role === 'admin') return 'admin-dash';
+  return 'client-dash';
+};
+
+const getInitialView = (): ViewState => {
+  const token = localStorage.getItem('YDA LAW OFFICE & Partners_token');
+  const user = getStoredUser();
+
+  if (token && user?.role) {
+    return dashboardViewForRole(user.role);
+  }
+
+  return 'landing';
+};
+
+const consultationToLawyer = (row: ConsultationRow): Lawyer => ({
+  id: row.lawyer_id || 'selected-lawyer',
+  name: row.lawyer_directory?.name || 'Advokat',
+  specialty: row.lawyer_directory?.specialty || row.consultation_type,
+  rating: 0,
+  reviewCount: 0,
+  experience: 0,
+  price: row.price,
+  image: row.lawyer_directory?.image || '/lawyer1.png',
+  description: '',
+  isOnline: false,
+  languages: [],
+  education: [],
+  certifications: [],
+  availability: []
+});
+
+export default function App() {
+  const [view, setViewInternal] = useState<ViewState>(getInitialView);
+  
+  const setView = (nextView: ViewState) => {
+    const user = getStoredUser();
+    const consultationAccess = consultationFromBookingData(bookingData);
+    const access = canAccessView(nextView, {
+      user,
+      consultation: consultationAccess,
+      consultations: clientConsultations
+    });
+
+    if (!access.allowed) {
+      setViewInternal(access.redirect || 'login');
+      return;
+    }
+
+    setViewInternal(nextView);
+  };
+  const [preAuthRole, setPreAuthRole] = useState<'client' | 'lawyer' | 'admin'>('client');
+  const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
+  const [meetingMode, setMeetingMode] = useState<'video' | 'voice'>('video');
+  const [bookingData, setBookingData] = useState<any>(null);
+  const [clientConsultations, setClientConsultations] = useState<ConsultationRow[]>([]);
+
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user?.role !== 'client' || !user.id) return;
+    fetchClientConsultations(user.id)
+      .then(setClientConsultations)
+      .catch(() => setClientConsultations([]));
+  }, [view]);
+
+  useEffect(() => {
+    restoreSupabaseSession().then((user) => {
+      if (user) {
+        setView(dashboardViewForRole(user.role));
+      }
+    });
+  }, []);
+
+  const handleAuth = (role: 'client' | 'lawyer' | 'admin') => {
+    setView(dashboardViewForRole(role));
+  };
+
+  const startOTP = () => {
+    setView('otp');
+  };
+
+  const handleLogout = async () => {
+    await signOutSupabase();
+    setView('landing');
+  };
+
+  const handleBackToHome = () => {
+    const token = localStorage.getItem('YDA LAW OFFICE & Partners_token');
+    const user = getStoredUser();
+
+    if (token && user?.role) {
+      setView(dashboardViewForRole(user.role));
+      return;
+    }
+
+    setView('landing');
+  };
+
+  const handleSelectLawyer = (lawyer: Lawyer) => {
+    setSelectedLawyer(lawyer);
+    setView('lawyer-detail');
+  };
+
+  const paidBookingPatch = {
+    status: 'paid' as const,
+    app_payments: [{ status: 'paid' as const }]
+  };
+
+  const handleConfirmBooking = (data: any) => {
+    if (data.lawyer) {
+      setSelectedLawyer(data.lawyer);
+    }
+    setBookingData(data);
+    setView('payment');
+  };
+
+  const openClientConsultation = (row: ConsultationRow) => {
+    setSelectedLawyer(consultationToLawyer(row));
+    setBookingData({
+      id: row.id,
+      consultationId: row.id,
+      clientId: row.client_id,
+      lawyerId: row.lawyer_id,
+      lawyerName: row.lawyer_directory?.name || 'Advokat',
+      type: row.consultation_type || ConsultationType.CHAT,
+      price: row.price,
+      day: row.scheduled_day || undefined,
+      time: row.scheduled_time || undefined,
+      status: row.status,
+      app_payments: row.app_payments || []
+    });
+
+    if (requiresPayment(row)) {
+      setView('payment');
+      return;
+    }
+
+    if (row.status === 'completed') {
+      setView('review');
+      return;
+    }
+
+    setMeetingMode('video');
+    setView('chat');
+  };
+
+  const activeUser = getStoredUser();
+  const activeRole = activeUser?.role || 'client';
+  const activeConsultationRole = activeRole === 'lawyer' ? 'lawyer' : 'client';
+  const remoteMeetingName = activeRole === 'lawyer'
+    ? bookingData?.clientName || 'Klien'
+    : selectedLawyer?.name || 'Advokat';
+  const remoteMeetingSubtitle = activeRole === 'lawyer'
+    ? 'Klien'
+    : selectedLawyer?.specialty || 'Konsultasi Hukum';
+  const remoteMeetingImage = activeRole === 'lawyer'
+    ? undefined
+    : selectedLawyer?.image;
+  const leaveConsultationView = async () => {
+    if (activeRole === 'lawyer') {
+      setView('lawyer-dash');
+      return;
+    }
+
+    const consultationId = bookingData?.consultationId || bookingData?.id;
+    if (consultationId) {
+      await updateConsultationStatus(consultationId, 'completed', 'Session ended by client').catch(() => null);
+    }
+    setView('review');
+  };
+  const leaveCallView = () => {
+    setView('chat');
+  };
+
+  const consultationAccess = consultationFromBookingData(bookingData);
+  const canEnterConsultationSession = activeRole === 'lawyer'
+    || (consultationAccess ? canAccessConsultationSession(consultationAccess) : false);
+
+  useEffect(() => {
+    if (view !== 'chat' && view !== 'meeting') return;
+    if (activeRole === 'lawyer') return;
+    if (!consultationAccess || canAccessConsultationSession(consultationAccess)) return;
+    setView('payment');
+  }, [view, activeRole, bookingData]);
+
+  return (
+    <div className="min-h-screen">
+      {view === 'landing' && (
+        <LandingPage 
+          onEnterApp={() => setView('login')} 
+          onBrowseLawyers={() => setView('lawyer-list')}
+          onSelectLawyer={handleSelectLawyer}
+        />
+      )}
+      {view === 'login' && (
+        <LoginPage 
+          onLogin={handleAuth} 
+          onNavigateToRegister={() => setView('register')} 
+          onBack={handleBackToHome}
+          onForgotPassword={() => setView('forgot-password')}
+        />
+      )}
+      {view === 'register' && (
+        <RegisterPage 
+          onRegister={handleAuth} 
+          onNavigateToLogin={() => setView('login')} 
+          onBack={handleBackToHome}
+          onVerifyOTP={startOTP}
+        />
+      )}
+      {view === 'forgot-password' && (
+        <ForgotPasswordPage 
+            onBack={() => setView('login')} 
+            onVerifyOTP={startOTP}
+        />
+      )}
+      {view === 'otp' && (
+        <OTPVerificationPage 
+            email="user@email.com"
+            onVerified={() => handleAuth('client')}
+            onBack={() => setView('login')}
+        />
+      )}
+      {view === 'lawyer-list' && (
+        <LawyerList 
+          onBack={handleBackToHome} 
+          onSelectLawyer={handleSelectLawyer}
+        />
+      )}
+      {view === 'lawyer-detail' && selectedLawyer && (
+        <LawyerDetail 
+          lawyer={selectedLawyer}
+          onBack={() => setView('lawyer-list')}
+          onAction={() => {
+            setMeetingMode('video');
+            setView('booking');
+          }}
+        />
+      )}
+      {view === 'booking' && selectedLawyer && (
+        <BookingPage 
+            lawyer={selectedLawyer}
+            onBack={() => setView('lawyer-detail')}
+            onConfirm={handleConfirmBooking}
+        />
+      )}
+      {view === 'payment' && bookingData && (
+        <PaymentPage
+          bookingData={bookingData}
+          onBack={() => setView(bookingData.lawyer ? 'booking' : 'client-dash')}
+          onPaymentVerified={() => {
+            setBookingData({ ...bookingData, ...paidBookingPatch });
+          }}
+          onStartConsultation={() => {
+            setBookingData({ ...bookingData, ...paidBookingPatch });
+            setMeetingMode('video');
+            setView('chat');
+          }}
+        />
+      )}
+      {view === 'chat' && selectedLawyer && canEnterConsultationSession && (
+        <ChatPage 
+          lawyer={selectedLawyer}
+          consultationId={bookingData?.consultationId || bookingData?.id}
+          clientId={bookingData?.clientId}
+          remoteParticipantName={remoteMeetingName}
+          remoteParticipantSubtitle={remoteMeetingSubtitle}
+          remoteParticipantImage={remoteMeetingImage}
+          onBack={leaveConsultationView}
+          currentUserRole={activeConsultationRole}
+          onStartCall={(mode) => {
+            setMeetingMode(mode);
+            setView('meeting');
+          }}
+        />
+      )}
+      {view === 'meeting' && selectedLawyer && canEnterConsultationSession && (
+        <MeetingPage 
+          lawyer={selectedLawyer}
+          consultationId={bookingData?.consultationId || bookingData?.id}
+          currentUserRole={activeConsultationRole}
+          localParticipantName={activeUser?.name || 'Anda'}
+          remoteParticipantName={remoteMeetingName}
+          remoteParticipantSubtitle={remoteMeetingSubtitle}
+          remoteParticipantImage={remoteMeetingImage}
+          isVoiceOnly={meetingMode === 'voice'}
+          onEndCall={leaveCallView}
+        />
+      )}
+      {view === 'admin-dash' && (
+        <AdminDashboard onLogout={handleLogout} />
+      )}
+      {view === 'lawyer-dash' && (
+        <LawyerDashboard
+          onLogout={handleLogout}
+          onViewProfile={() => setView('lawyer-profile-settings')}
+          onOpenConsultation={(consultation) => {
+            const user = getStoredUser();
+            setSelectedLawyer({
+              id: consultation.lawyer_id,
+              name: user?.name || consultation.lawyer_directory?.name || 'Advokat',
+              specialty: consultation.lawyer_directory?.specialty || 'Konsultasi Hukum',
+              rating: 0,
+              reviewCount: 0,
+              experience: 0,
+              price: consultation.price,
+              image: consultation.lawyer_directory?.image || '/lawyer1.png',
+              description: '',
+              isOnline: true,
+              languages: [],
+              education: [],
+              certifications: [],
+              availability: []
+            });
+            setBookingData({
+              id: consultation.id,
+              consultationId: consultation.id,
+              clientId: consultation.client_id,
+              lawyerId: consultation.lawyer_id,
+              clientName: consultation.profiles?.full_name || 'Klien',
+              type: consultation.consultation_type,
+              price: consultation.price,
+              day: consultation.scheduled_day,
+              time: consultation.scheduled_time
+            });
+            setView('chat');
+          }}
+        />
+      )}
+      {view === 'client-dash' && (
+        <ClientDashboard 
+          onLogout={handleLogout} 
+          onBrowseLawyers={() => setView('lawyer-list')} 
+          onViewHistory={() => setView('case-history')}
+          onViewDocuments={() => setView('document-vault')}
+          onViewHelp={() => setView('help')}
+          onViewSettings={() => setView('profile-settings')}
+          onOpenRusdi={() => setView('rusdi-chat')}
+          onOpenConsultation={openClientConsultation}
+        />
+      )}
+      {view === 'help' && (
+        <HelpPage onBack={() => setView('client-dash')} />
+      )}
+      {view === 'profile-settings' && (
+        <ProfileSettingsPage onBack={() => setView('client-dash')} />
+      )}
+      {view === 'lawyer-profile-settings' && (
+        <LawyerProfileSettingsPage onBack={() => setView('lawyer-dash')} />
+      )}
+      {view === 'case-history' && (
+        <CaseHistoryPage 
+          onBack={() => setView('client-dash')} 
+        />
+      )}
+      {view === 'document-vault' && (
+        <DocumentVaultPage onBack={() => setView('client-dash')} />
+      )}
+      {view === 'review' && selectedLawyer && (
+        <ReviewPage 
+            lawyer={selectedLawyer}
+            consultationId={bookingData?.consultationId || bookingData?.id}
+            onBack={() => setView('client-dash')}
+            onSubmit={() => setView('client-dash')}
+        />
+      )}
+      {view === 'rusdi-chat' && (
+        <RusdiPage 
+          onBack={handleBackToHome}
+          onSelectLawyer={handleSelectLawyer}
+        />
+      )}
+      {view !== 'rusdi-chat' && (
+        <RusdiWidget
+          onOpenFullPage={() => (activeUser ? setView('rusdi-chat') : setView('login'))}
+          onLoginRequired={() => setView('login')}
+        />
+      )}
+      <GlobalLanguageSwitcher />
+    </div>
+  );
+}
+

@@ -1,0 +1,260 @@
+﻿{
+  "common": {
+    "appName": "YDA LAW OFFICE & Partners",
+    "login": "Masuk",
+    "register": "Daftar",
+    "logout": "Keluar",
+    "dashboard": "Dasbor",
+    "profileSettings": "Pengaturan Profil",
+    "back": "Kembali",
+    "save": "Simpan Perubahan",
+    "saving": "Menyimpan...",
+    "cancel": "Batal",
+    "loading": "Memuat...",
+    "send": "Kirim",
+    "upload": "Unggah",
+    "status": "Status",
+    "action": "Aksi",
+    "fee": "Biaya Konsultasi",
+    "rating": "Penilaian",
+    "experience": "Pengalaman",
+    "years": "Tahun",
+    "specialty": "Spesialisasi",
+    "history": "Riwayat",
+    "documents": "Dokumen",
+    "help": "Bantuan",
+    "admin": "Admin",
+    "lawyer": "Advokat",
+    "client": "Klien",
+    "guest": "Tamu",
+    "yes": "Ya",
+    "no": "Tidak",
+    "confirm": "Konfirmasi"
+  },
+  "nav": {
+    "landing": "Beranda",
+    "lawyers": "Cari Advokat",
+    "rusdi": "Asisten AI Rusdi",
+    "testimonials": "Ulasan Klien",
+    "statistics": "Statistik",
+    "faq": "Tanya Jawab"
+  },
+  "landing": {
+    "heroTitle": "Keadilan Hukum di Ujung Jari Anda",
+    "heroSubtitle": "YDA LAW OFFICE & Partners menghubungkan Anda dengan Advokat Indonesia pilihan secara instan. Konsultasikan kasus Anda dengan Rusdi AI secara gratis atau jadwalkan panggilan video dengan ahli hukum resmi.",
+    "startFreeAi": "Konsultasi Gratis dengan AI Rusdi",
+    "findLawyer": "Cari Advokat Profesional",
+    "whyChooseUs": "Mengapa Memilih Kami?",
+    "categoriesTitle": "Kategori Hukum Terpopuler",
+    "categoriesSubtitle": "Temukan spesialis hukum terbaik sesuai dengan kebutuhan hukum Anda",
+    "topLawyersTitle": "Advokat Unggulan Kami",
+    "topLawyersSubtitle": "Para pengacara berlisensi resmi dengan rating tertinggi dan pengalaman teruji",
+    "processTitle": "Alur Layanan Konsultasi",
+    "processSubtitle": "Hanya 4 langkah mudah untuk menyelesaikan masalah hukum Anda",
+    "faqTitle": "Pertanyaan yang Sering Diajukan",
+    "faqSubtitle": "Jawaban atas pertanyaan umum tentang platform YDA LAW OFFICE & Partners dan layanan kami"
+  },
+  "categories": {
+    "family": {
+      "title": "Hukum Keluarga",
+      "desc": "Perceraian, hak asuh anak, warisan, dan permasalahan keluarga lainnya."
+    },
+    "business": {
+      "title": "Hukum Bisnis",
+      "desc": "Kontrak, pendirian PT, kepailitan, dan sengketa bisnis."
+    },
+    "criminal": {
+      "title": "Hukum Pidana",
+      "desc": "Pembelaan perkara pidana, KDRT, penipuan, dan penggelapan."
+    },
+    "civil": {
+      "title": "Hukum Perdata",
+      "desc": "Sengketa tanah, wanprestasi kontrak, dan gugatan ganti rugi."
+    },
+    "labor": {
+      "title": "Hukum Ketenagakerjaan",
+      "desc": "PHK tidak adil, pesangon, hak pekerja, dan perselisihan industrial."
+    },
+    "tax": {
+      "title": "Hukum Pajak",
+      "desc": "Sengketa pajak, pengajuan keberatan, dan kepatuhan perpajakan."
+    },
+    "inheritance": {
+      "title": "Hukum Waris",
+      "desc": "Pembagian harta warisan, hibah, dan sengketa hak waris."
+    },
+    "others": {
+      "title": "Kategori Lainnya",
+      "desc": "Temukan spesialisasi hukum lain sesuai kebutuhan Anda."
+    }
+  },
+  "howItWorks": {
+    "title": "Cara Kerja Platform Kami",
+    "step1": {
+      "title": "Daftar & Buat Profil",
+      "desc": "Buat akun dalam hitungan menit dan lengkapi profil hukum Anda."
+    },
+    "step2": {
+      "title": "Konsultasi dengan Rusdi AI",
+      "desc": "Ceritakan kasus Anda kepada Rusdi AI untuk analisis awal dan rekomendasi advokat."
+    },
+    "step3": {
+      "title": "Hubungi Advokat Pilihan",
+      "desc": "Jadwalkan sesi konsultasi video dengan advokat berlisensi pilihan Anda."
+    }
+  },
+  "faq": {
+    "q1": "Apakah konsultasi dengan AI Rusdi benar-benar gratis?",
+    "a1": "Ya, konsultasi dengan AI Rusdi sepenuhnya gratis tanpa batas. Anda hanya membayar jika memutuskan untuk menjadwalkan sesi dengan advokat manusia.",
+    "q2": "Bagaimana cara memilih advokat yang tepat untuk kasus saya?",
+    "a2": "Rusdi AI akan menganalisis kasus Anda dan merekomendasikan advokat yang paling sesuai berdasarkan spesialisasi, pengalaman, dan rating mereka.",
+    "q3": "Apakah data kasus saya aman dan rahasia?",
+    "a3": "Keamanan data Anda adalah prioritas kami. Semua komunikasi dienkripsi dan hanya advokat yang Anda pilih yang dapat mengakses detail kasus Anda.",
+    "q4": "Berapa biaya konsultasi dengan advokat?",
+    "a4": "Biaya bervariasi tergantung advokat dan jenis konsultasi. Anda dapat melihat tarif transparan di profil setiap advokat sebelum melakukan pemesanan."
+  },
+  "auth": {
+    "loginTitle": "Masuk ke YDA LAW OFFICE & Partners",
+    "loginSubtitle": "Silakan masuk dengan akun Anda untuk melanjutkan konsultasi hukum",
+    "emailLabel": "Alamat Email",
+    "passwordLabel": "Kata Sandi",
+    "rememberMe": "Ingat Saya",
+    "forgotPassword": "Lupa Kata Sandi?",
+    "noAccount": "Belum punya akun?",
+    "registerNow": "Daftar Sekarang",
+    "registerTitle": "Daftar Akun Baru",
+    "registerSubtitle": "Bergabunglah untuk akses konsultasi hukum instan dan AI Rusdi",
+    "fullNameLabel": "Nama Lengkap (Sesuai KTP)",
+    "roleLabel": "Tipe Akun",
+    "haveAccount": "Sudah memiliki akun?",
+    "loginNow": "Masuk Sekarang",
+    "errorMismatch": "Role login tidak cocok dengan akun ini.",
+    "errorInactive": "Akun sedang tidak aktif."
+  },
+  "guest": {
+    "title": "Akses Terbatas untuk Tamu",
+    "message": "Anda menjelajahi platform sebagai Tamu. Untuk melakukan booking, menggunakan AI Rusdi, mengunggah dokumen, atau masuk ke dasbor personal, Anda harus masuk atau mendaftar terlebih dahulu.",
+    "action": "Masuk / Daftar"
+  },
+  "rusdi": {
+    "title": "Rusdi - Asisten Hukum AI",
+    "subtitle": "Konsultasikan kasus hukum Anda secara aman. Rusdi dapat mengurai dokumen hukum dan memberikan analisis awal secara otomatis.",
+    "placeholder": "Ketik pesan Anda di sini (misal: 'Bagaimana cara menggugat wanprestasi?')...",
+    "uploadText": "Unggah Dokumen (PDF, DOCX, PNG, JPG, JPEG)",
+    "filePlaceholder": "Seret berkas di sini atau klik untuk mengunggah",
+    "caseAnalysisTab": "Analisis Kasus Terstruktur",
+    "lawyerRecTab": "Rekomendasi Advokat",
+    "chatTab": "Chat Bebas",
+    "memoryTitle": "Memori Percakapan Sesi",
+    "analysisResult": "Hasil Analisis Hukum Rusdi",
+    "recommendationReason": "Alasan Rekomendasi:",
+    "consultationGuidance": "Panduan Pertanyaan Konsultasi:",
+    "newChat": "Sesi Baru",
+    "searchChats": "Cari percakapan...",
+    "archivedChats": "Arsip",
+    "activeChats": "Percakapan Aktif",
+    "renameChat": "Ubah nama",
+    "archiveChat": "Arsipkan",
+    "unarchiveChat": "Pulihkan",
+    "deleteChat": "Hapus",
+    "noHistory": "Belum ada riwayat chat.",
+    "noSearchResults": "Percakapan tidak ditemukan."
+  },
+  "dashboards": {
+    "admin": {
+      "totalUsers": "Total Pengguna",
+      "totalLawyers": "Total Advokat",
+      "totalConsultations": "Total Konsultasi",
+      "totalRevenue": "Total Pendapatan",
+      "aiUsage": "Penggunaan AI",
+      "growth": "Pertumbuhan Bulanan",
+      "trendsTitle": "Tren Konsultasi Bulanan",
+      "revenueTrends": "Tren Pendapatan (Rupiah)",
+      "categoryTrends": "Distribusi Kasus per Kategori",
+      "lawyerPerformance": "Kinerja Pengacara (Rating & Kasus)",
+      "recentTransactions": "Transaksi Terbaru",
+      "pendingVerification": "Verifikasi Advokat Pending"
+    },
+    "lawyer": {
+      "activeCases": "Kasus Aktif",
+      "monthlyRevenue": "Pendapatan Bulan Ini",
+      "upcomingAppointments": "Janji Temu Mendatang",
+      "avgRating": "Rating Rata-rata",
+      "availabilityTitle": "Kelola Jam Kerja & Hari Kerja",
+      "profileSpecialization": "Spesialisasi & Tarif",
+      "clientsDoc": "Dokumen Klien"
+    },
+    "client": {
+      "welcome": "Selamat datang kembali",
+      "activeConsultations": "Konsultasi Aktif Anda",
+      "uploadedDocs": "Vault Dokumen Hukum Anda",
+      "recsLawyers": "Rekomendasi Advokat Pilihan Rusdi",
+      "aiConversations": "Riwayat Konsultasi AI Rusdi",
+      "bookNew": "Jadwalkan Konsultasi Baru",
+      "findLawyer": "Cari Advokat Sekarang"
+    }
+  },
+  "payment": {
+    "title": "Pembayaran",
+    "walletLabel": "Total Pembayaran",
+    "completePaymentHint": "Selesaikan pembayaran untuk membuka sesi",
+    "payNow": "Bayar Sekarang",
+    "selectMethod": "Pilih Metode Pembayaran",
+    "orderDetails": "Detail Pesanan",
+    "serviceFee": "Biaya Layanan",
+    "tax": "Pajak (PPN 11%)",
+    "grandTotal": "Grand Total",
+    "payViaMidtrans": "Kirim Bukti Pembayaran",
+    "processing": "Memproses...",
+    "securePayment": "Pembayaran Manual Aman",
+    "securePaymentDesc": "Pembayaran diverifikasi manual oleh advokat atau admin sebelum sesi konsultasi dibuka.",
+    "recentTransactions": "Riwayat Transaksi Terakhir",
+    "refresh": "Refresh",
+    "noTransactions": "Belum ada transaksi live",
+    "noTransactionsDesc": "Invoice akan muncul setelah booking konsultasi dibuat.",
+    "terms": "Syarat & Ketentuan",
+    "termsAgree": "Dengan membayar, Anda menyetujui Syarat & Ketentuan kami.",
+    "pendingTitle": "Menunggu Verifikasi",
+    "pendingDesc": "Bukti pembayaran sudah dikirim. Advokat akan meninjau sebelum sesi konsultasi aktif.",
+    "settlementTitle": "Pembayaran Menunggu Verifikasi",
+    "confirmPendingTitle": "Verifikasi Sedang Diproses",
+    "paymentFailed": "Bukti pembayaran gagal dikirim. Silakan coba lagi.",
+    "popupClosed": "Anda dapat mengunggah ulang bukti pembayaran dari halaman ini.",
+    "demoModeTitle": "Bukti pembayaran terkirim",
+    "demoModeDesc": "Bukti pembayaran berhasil dikirim dan menunggu verifikasi advokat."
+  },
+  "booking": {
+    "title": "Booking Konsultasi",
+    "loginRequired": "Silakan login sebagai klien terlebih dahulu sebelum membuat booking.",
+    "failed": "Booking gagal disimpan",
+    "confirm": "Konfirmasi Booking",
+    "selectSchedule": "Pilih Jadwal",
+    "notes": "Catatan Masalah",
+    "notesPlaceholder": "Jelaskan ringkasan masalah hukum Anda..."
+  },
+  "consultation": {
+    "openActive": "Buka Konsultasi Aktif",
+    "paymentRequired": "Pembayaran diperlukan sebelum mengakses sesi konsultasi.",
+    "legalConsultation": "Konsultasi Hukum",
+    "oneSession": "1 Sesi (60 Menit)"
+  },
+  "documents": {
+    "uploadHint": "PDF, PNG, JPG (Maks 20MB)"
+  },
+  "admin": {
+    "clientsTitle": "Akun Klien",
+    "clientsDesc": "Cari klien, cek status akun, dan lakukan suspend/block saat dibutuhkan.",
+    "clientsNotFound": "Klien tidak ditemukan",
+    "clientStatusUpdated": "Status Klien Diperbarui",
+    "clientUpdateFailed": "Update Klien Gagal"
+  },
+  "lawyer": {
+    "myClients": "Klien Saya",
+    "addClient": "Tambah Klien",
+    "noActiveClients": "Belum ada klien aktif",
+    "clientsAppearAfterBooking": "Klien akan muncul setelah booking diterima atau konsultasi dimulai.",
+    "selectClientTarget": "Pilih Klien Tujuan",
+    "noClientToSelect": "Belum ada klien untuk dipilih",
+    "clientColumn": "Klien"
+  }
+}
